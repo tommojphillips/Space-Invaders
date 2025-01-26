@@ -17,6 +17,7 @@
 #define L  mnem->cpu->registers[REG_L]
 #define HL	((H << 8) | L)
 
+
 #define SF mnem->cpu->status_flags->SF
 #define CF mnem->cpu->status_flags->CF
 #define ZF mnem->cpu->status_flags->ZF
@@ -24,11 +25,11 @@
 #define PF mnem->cpu->status_flags->PF
 
 #define READ_BYTE(address) i8080_read_byte(mnem->cpu, address)
+#define READ_WORD(address) ((READ_BYTE((address) + 1) << 8) | READ_BYTE(address))
+#define READ_ADDRESS READ_WORD(PC+1);
+#define READ_STACK_ADDRESS READ_WORD(SP)
 
 #define MNEM(x, ...) snprintf(mnem->str, sizeof(mnem->str), x, __VA_ARGS__)
-
-#define READ_ADDRESS ((READ_BYTE(PC + 2) << 8) | READ_BYTE(PC + 1));
-#define READ_STACK_ADDRESS ((READ_BYTE(SP + 1) << 8) | READ_BYTE(SP));
 
 static const char* reg_mnem[REG_COUNT] = {
 	"B", "C", "D", "E", "H", "L", "M", "A"

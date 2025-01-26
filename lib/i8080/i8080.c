@@ -23,12 +23,7 @@
 #define E  cpu->registers[REG_E]
 #define H  cpu->registers[REG_H]
 #define L  cpu->registers[REG_L]
-
 #define F  cpu->registers[REG_FLAGS]
-
-#define BC	((B << 8) | C)
-#define DE	((D << 8) | E)
-#define HL	((H << 8) | L)
 
 #define SF cpu->status_flags->SF
 #define CF cpu->status_flags->CF
@@ -46,13 +41,8 @@
 #define WRITE_IO(port, value) i8080_write_io(cpu, port, value)
 
 #define READ_WORD(address) ((READ_BYTE((address) + 1) << 8) | READ_BYTE(address))
-
 #define READ_ADDRESS READ_WORD(PC+1);
 #define READ_STACK_ADDRESS READ_WORD(SP)
-
-//#define READ_ADDRESS ((READ_BYTE(PC + 2) << 8) | READ_BYTE(PC+1))
-//#define READ_STACK_ADDRESS ((READ_BYTE(SP + 1) << 8) | READ_BYTE(SP))
-
 
 static uint8_t cal_parity_8bit(uint8_t value) {
 	value ^= value >> 4;
@@ -556,20 +546,20 @@ void XTHL(I8080* cpu) {
 
 void SPHL(I8080* cpu) {
 	/* Load SP with HL */
-	SP = HL;
+	SP = (H << 8) | L;
 	PC += 1;
 	CYCLES(5);
 }
 void PCHL(I8080* cpu) {
 	/* Load PC with HL */
-	PC = HL;
+	PC = (H << 8) | L;
 	CYCLES(5);
 }
 
 void DAD_BC(I8080* cpu) {
 	/* Add BC to HL */
-	uint32_t hl = HL;
-	uint32_t bc = BC;
+	uint16_t hl = (H << 8) | L;
+	uint16_t bc = (B << 8) | C;
 	uint32_t tmp = hl + bc;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
@@ -579,7 +569,9 @@ void DAD_BC(I8080* cpu) {
 }
 void DAD_DE(I8080* cpu) {
 	/* Add DE to HL */
-	uint32_t tmp = HL + DE;
+	uint16_t hl = (H << 8) | L;
+	uint16_t de = (D << 8) | E;
+	uint32_t tmp = hl + de;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -588,7 +580,8 @@ void DAD_DE(I8080* cpu) {
 }
 void DAD_HL(I8080* cpu) {
 	/* Add HL to HL; Shift HL left 1 */
-	uint32_t tmp = HL << 0x1;
+	uint16_t hl = (H << 8) | L;
+	uint32_t tmp = hl << 0x1;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -597,7 +590,8 @@ void DAD_HL(I8080* cpu) {
 }
 void DAD_SP(I8080* cpu) {
 	/* Add SP to HL */
-	uint32_t tmp = HL + SP;
+	uint16_t hl = (H << 8) | L;
+	uint32_t tmp = hl + SP;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -607,26 +601,30 @@ void DAD_SP(I8080* cpu) {
 
 void STAX_BC(I8080* cpu) {
 	/* Store A at [BC] */
-	WRITE_BYTE(BC, A);
+	uint16_t address = (B << 8) | C;
+	WRITE_BYTE(address, A);
 	PC += 1;
 	CYCLES(7);
 }
 void STAX_DE(I8080* cpu) {
 	/* Store A at [DE] */
-	WRITE_BYTE(DE, A);
+	uint16_t address = (D << 8) | E;
+	WRITE_BYTE(address, A);
 	PC += 1;
 	CYCLES(7);
 }
 
 void LDAX_BC(I8080* cpu) {
 	/* Load A from [BC] */
-	A = READ_BYTE(BC);
+	uint16_t address = (B << 8) | C;
+	A = READ_BYTE(address);
 	PC += 1;
 	CYCLES(7);
 }
 void LDAX_DE(I8080* cpu) {
 	/* Load A from [DE] */
-	A = READ_BYTE(DE);
+	uint16_t address = (D << 8) | E;
+	A = READ_BYTE(address);
 	PC += 1;
 	CYCLES(7);
 }
@@ -639,14 +637,16 @@ void MOV_R_R(I8080* cpu) {
 }
 void MOV_M_R(I8080* cpu) {
 	/* Move register to [HL] */
+	uint16_t address = (H << 8) | L;
 	uint8_t value = cpu->registers[SSS];
-	WRITE_BYTE(HL, value);
+	WRITE_BYTE(address, value);
 	PC += 1;
 	CYCLES(7);
 }
 void MOV_R_M(I8080* cpu) {
 	/* mov [HL] to register */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	cpu->registers[DDD] = value;
 	PC += 1;
 	CYCLES(7);
@@ -660,8 +660,9 @@ void MOV_I_R(I8080* cpu) {
 }
 void MOV_I_M(I8080* cpu) {
 	/* Move immediate to [HL] */
+	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(PC + 1);
-	WRITE_BYTE(HL, value);
+	WRITE_BYTE(address, value);
 	PC += 2;
 	CYCLES(10);
 }
@@ -685,21 +686,23 @@ void DCR_R(I8080* cpu) {
 
 void INR_M(I8080* cpu) {
 	/* Increment [HL] */
-	uint8_t tmp = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t tmp = READ_BYTE(address);
 	uint8_t carry = CF;
 	alu_add(cpu, &tmp, 1);
 	CF = carry;
-	WRITE_BYTE(HL, tmp);
+	WRITE_BYTE(address, tmp);
 	PC += 1; 
 	CYCLES(10);
 }
 void DCR_M(I8080* cpu) {
 	/* Decrement [HL] */
-	uint8_t tmp = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t tmp = READ_BYTE(address);
 	uint8_t carry = CF;
 	alu_sub(cpu, &tmp, 1);
 	CF = carry;
-	WRITE_BYTE(HL, tmp);
+	WRITE_BYTE(address, tmp);
 	PC += 1;
 	CYCLES(10);
 }
@@ -756,28 +759,32 @@ void CMP_R(I8080* cpu) {
 
 void ADD_M(I8080* cpu) {
 	/* ADD [HL] to A */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_add(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void ADC_M(I8080* cpu) {
 	/* ADC [HL] to A */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_adc(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void SUB_M(I8080* cpu) {
 	/* SUB [HL] from A */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_sub(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void SBB_M(I8080* cpu) {
 	/* SBB [HL] from A */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_sbb(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
@@ -785,28 +792,32 @@ void SBB_M(I8080* cpu) {
 
 void ANA_M(I8080* cpu) {
 	/* AND A with [HL] */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_and(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void XRA_M(I8080* cpu) {
 	/* XOR A with [HL] */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_xor(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void ORA_M(I8080* cpu) {
 	/* OR A with [HL] */
-	uint8_t value = READ_BYTE(HL);
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address);
 	alu_or(cpu, &A, value);
 	PC += 1;
 	CYCLES(7);
 }
 void CMP_M(I8080* cpu) {
 	/* CMP A with [HL] */
-	uint8_t value = READ_BYTE(HL); 
+	uint16_t address = (H << 8) | L;
+	uint8_t value = READ_BYTE(address); 
 	alu_cmp(cpu, A, value);
 	PC += 1;
 	CYCLES(7);
@@ -941,7 +952,7 @@ void INX_SP(I8080* cpu) {
 
 void DCX_BC(I8080* cpu) {
 	/* Decrement BC */
-	uint32_t tmp = BC;
+	uint32_t tmp = (B << 8) | C;
 	tmp -= 1;
 	C = tmp & 0xFF;
 	B = (tmp >> 8) & 0xFF;
@@ -950,7 +961,7 @@ void DCX_BC(I8080* cpu) {
 }
 void DCX_DE(I8080* cpu) {
 	/* Decrement DE */
-	uint32_t tmp = DE;
+	uint32_t tmp = (D << 8) | E;
 	tmp -= 1;
 	E = tmp & 0xFF;
 	D = (tmp >> 8) & 0xFF;
@@ -959,7 +970,7 @@ void DCX_DE(I8080* cpu) {
 }
 void DCX_HL(I8080* cpu) {
 	/* Decrement HL */
-	uint32_t tmp = HL;
+	uint32_t tmp = (H << 8) | L;
 	tmp -= 1;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
