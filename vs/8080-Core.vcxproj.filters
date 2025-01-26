@@ -60,9 +60,6 @@
     <ClCompile Include="..\src\cpu_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\i8080_opcodes.c">
-      <Filter>i8080</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\display.c">
       <Filter>Source Files</Filter>
     </ClCompile>
