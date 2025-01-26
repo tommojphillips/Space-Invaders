@@ -19,7 +19,11 @@ I've mapped both player 1 and player 2 controls to the same keys.
 | 3           | Insert Coin                |
 | C           | Insert Coin                |
 
- ---
+---
+
+A Windows binary is available for download on the releases page. See: [Releases](https://github.com/tommojphillips/Space-Invaders/releases)
+
+---
 
 ### Dependencies 
  - IMGUI v1.91.6 - https://github.com/ocornut/imgui/releases/tag/v1.91.6
