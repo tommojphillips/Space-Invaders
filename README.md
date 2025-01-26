@@ -6,13 +6,18 @@ A Space Invaders Emulator for Windows written in C using SDL2 for renderering an
 
 #### Input
 
+I've mapped both player 1 and player 2 controls to the same keys.
 
 | Key         | Desc                       |
 | ---         | ----------------------     |
 | Esc         | Toggle Main Menu           |
+| 1           | Player one start           |
+| 2           | Player two start           |
 | Space       | Fire                       |
 | Left Arrow  | Left                       |
 | Right Arrow | Right                      |
+| 3           | Insert Coin                |
+| C           | Insert Coin                |
 
  ---
 
