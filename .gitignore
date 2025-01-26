@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+lib/SDL2
+lib/SDL2_Image
+lib/imgui
+lib/imgui_club

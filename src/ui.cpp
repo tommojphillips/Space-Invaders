@@ -1,0 +1,427 @@
+/* ui.cpp
+* GitHub: https:\\github.com\tommojphillips
+*/
+
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
+#include "imgui_memory_editor/imgui_memory_editor.h"
+using namespace ImGui;
+
+#include "ui.h"
+#include "window_sdl2.h"
+
+#include "i8080.h"
+#include "i8080_mnem.h"
+#include "invaders.h"
+
+#define renderer_new_frame \
+	ImGui_ImplSDLRenderer2_NewFrame(); \
+	ImGui_ImplSDL2_NewFrame
+
+#define renderer_draw_data(renderer) \
+	ImGui_ImplSDLRenderer2_RenderDrawData(GetDrawData(), renderer)
+
+#define imgui_new_frame \
+	renderer_new_frame(); \
+	NewFrame
+
+#define imgui_render_frame(renderer) \
+	Render(); \
+	renderer_draw_data(renderer)
+
+#define init_renderer(window, renderer) \
+	ImGui_ImplSDL2_InitForSDLRenderer(window, renderer); \
+	ImGui_ImplSDLRenderer2_Init(renderer)
+
+#define destroy_renderer ImGui_ImplSDLRenderer2_Shutdown(); \
+	ImGui_ImplSDL2_Shutdown
+
+#define process_event ImGui_ImplSDL2_ProcessEvent(&sdl.e)
+
+#define set_bit(v, n) v |= (1 << n)
+#define clear_bit(v, n) v &= (~(1 << n))
+#define get_bit(v, n) ((v & (1 << n)) >> n)
+
+/* Imgui state */
+typedef struct {
+	ImGuiContext* context;
+	MemoryEditor* ram_editor;
+	MemoryEditor* rom_editor; 
+	MemoryEditor* video_editor; 
+	ImGuiIO* io;
+	char tmp_s[32];
+} IMGUI_STATE;
+
+static IMGUI_STATE imgui = { 0 };
+
+extern "C" UI_STATE ui_state = { 0 };
+
+extern "C" CPU_MNEM mnem;
+extern "C" int single_step;
+extern "C" uint32_t single_step_instruction_increment;
+extern "C" int single_step_instruction_count;
+
+int step = 1;
+int follow_next_instruction = 1;
+
+static void menu_window();
+static void debug_window(); 
+static void decode_window();
+static void stack_window();
+static void hl_window();
+static void de_window();
+static void dip_switch_window();
+static void dip_switch(uint8_t* v, uint8_t id, const char* dip_name);
+static void set_default_settings();
+
+void imgui_init() {
+	set_default_settings();
+}
+void imgui_create_renderer() {
+
+	IMGUI_CHECKVERSION();
+	imgui.context = CreateContext();
+	if (imgui.context == NULL) {
+		printf("Failed to create IMGUI Context");
+		return;
+	}
+
+	StyleColorsDark();
+	//StyleColorsLight();
+
+	imgui.io = &GetIO();
+	imgui.io->FontGlobalScale = ui_state.window_scale;
+
+	static MemoryEditor ram_editor;
+	ram_editor.Open = ui_state.show_ram_window;
+	ram_editor.Cols = ui_state.cols_ram_window;
+	ram_editor.OptShowAscii = ui_state.ascii_ram_window;
+	ram_editor.GotoAddr = 0;
+	imgui.ram_editor = &ram_editor;
+
+	static MemoryEditor rom_editor;
+	rom_editor.Open = ui_state.show_rom_window;
+	rom_editor.Cols = ui_state.cols_rom_window;
+	rom_editor.OptShowAscii = ui_state.ascii_rom_window;
+	imgui.rom_editor = &rom_editor;
+
+	static MemoryEditor video_editor;
+	video_editor.Open = ui_state.show_video_window;
+	video_editor.Cols = ui_state.cols_video_window;
+	video_editor.OptShowAscii = ui_state.ascii_video_window;
+	imgui.video_editor = &video_editor;
+
+	ImGui_ImplSDL2_InitForSDLRenderer(sdl.game_window, sdl.game_renderer);
+	ImGui_ImplSDLRenderer2_Init(sdl.game_renderer);
+}
+
+void imgui_destroy() {
+
+	
+	/* Cleanup */
+	ImGui_ImplSDLRenderer2_Shutdown(); 
+	ImGui_ImplSDL2_Shutdown();
+	DestroyContext(imgui.context);
+}
+void imgui_update() {
+	ImGui_ImplSDLRenderer2_NewFrame(); 
+	ImGui_ImplSDL2_NewFrame();
+	NewFrame();
+
+	if (ui_state.show_menu_window) {
+		menu_window();
+	}
+	else {
+
+		if (imgui.ram_editor->Open) {
+			imgui.ram_editor->DrawWindow("RAM (1K)", invaders.mm.ram, 1024, 0);
+		}
+
+		if (imgui.rom_editor->Open) {
+			imgui.rom_editor->DrawWindow("ROM (8K)", invaders.mm.rom, 8 * 1024, 0);
+		}
+
+		if (imgui.video_editor->Open) {
+			imgui.video_editor->DrawWindow("VIDEO (7K)", invaders.mm.video, 7 * 1024, 0);
+		}
+	}	
+	
+	if (ui_state.show_debug_window) {
+		debug_window();
+	}
+	if (ui_state.show_decode_window) {
+		decode_window();
+	}
+	if (ui_state.show_stack_window) {
+		stack_window();
+	}
+	if (ui_state.show_hl_window) {
+		hl_window();
+	}
+	if (ui_state.show_de_window) {
+		de_window();
+	}
+	if (ui_state.show_dip_switch_window) {
+		dip_switch_window();
+	}
+	Render();	
+	ImGui_ImplSDLRenderer2_RenderDrawData(GetDrawData(), sdl.game_renderer);
+}
+void imgui_process_event() {
+	ImGui_ImplSDL2_ProcessEvent(&sdl.e);
+}
+void imgui_toggle_menu() {
+	ui_state.show_menu_window ^= 1;
+}
+
+static void set_default_settings() {
+	ui_state.window_scale = 1.0f;
+
+	ui_state.show_menu_window = 0;
+	ui_state.show_debug_window = 1;
+
+	ui_state.show_ram_window = 0;
+	ui_state.cols_ram_window = 16;
+	ui_state.ascii_ram_window = 0;
+
+	ui_state.show_rom_window = 0;
+	ui_state.cols_rom_window = 16;
+	ui_state.ascii_rom_window = 0;
+
+	ui_state.show_video_window = 0;
+	ui_state.cols_video_window = 16;
+	ui_state.ascii_video_window = 0;
+}
+
+static void decode_window() {
+	Begin("Decode", (bool*)&ui_state.show_decode_window);
+	Checkbox("Follow flow", (bool*)&follow_next_instruction);
+	Separator();
+	BeginChild("Decode");
+	uint16_t pc = cpu.pc;
+	for (int i = 0; i < 10; ++i) {
+		cpu_mnem(&mnem, pc);
+		Text("%04X: %s", pc, mnem.str);
+		if (follow_next_instruction)
+			pc = mnem.pc;
+		else
+			pc += 1;
+	}
+	EndChild();
+	End();
+}
+static void stack_window() {
+	Begin("Stack", (bool*)&ui_state.show_stack_window);
+	int k = 0;
+	for (int i = 0; i < 10; ++i) {
+		Text("%04X: ", cpu.sp + k);
+		SameLine();
+		for (int j = 0; j < 4; ++j) {
+			Text("%02X ", i8080_read_byte(&cpu, cpu.sp + k));
+			if (j < 3) SameLine();
+			k++;
+		}
+	}
+	End();
+}
+static void hl_window() {
+	Begin("HL", (bool*)&ui_state.show_hl_window);
+	uint16_t ptr = ((cpu.registers[REG_H] << 8) | cpu.registers[REG_L]);
+	int k = 0;
+	for (int i = 0; i < 10; ++i) {
+		Text("%04X: ", ptr + k);
+		SameLine();
+		for (int j = 0; j < 4; ++j) {
+			Text("%02X ", i8080_read_byte(&cpu, ptr + k));
+			if (j < 3) SameLine();
+			k++;
+		}
+	}
+	End();
+}
+static void de_window() {
+	Begin("DE", (bool*)&ui_state.show_de_window);
+	uint16_t ptr = ((cpu.registers[REG_D] << 8) | cpu.registers[REG_E]);
+	int k = 0;
+	for (int i = 0; i < 10; ++i) {
+		Text("%04X: ", ptr + k);
+		SameLine();
+		for (int j = 0; j < 4; ++j) {
+			Text("%02X ", i8080_read_byte(&cpu, ptr + k));
+			if (j < 3) SameLine();
+			k++;
+		}
+	}
+	End();
+}
+static void dip_switch_window() {
+
+	dip_switch((uint8_t*)&invaders.io_input.input1, 31, "Input-1");
+	Separator();
+	dip_switch((uint8_t*)&invaders.io_input.input2, 63, "Input-2");
+	Separator();
+	dip_switch((uint8_t*)&invaders.io_output.sound1, 127, "Sound-1");
+	Separator();
+	dip_switch((uint8_t*)&invaders.io_output.sound2, 255, "Sound-2");
+}
+static void debug_window() {
+	Begin("Debug", (bool*)&ui_state.show_debug_window);
+	
+	if (single_step != 0) {
+		if (ArrowButton("Continue", ImGuiDir_Right)) {
+			single_step = 0;
+		}
+		SameLine();
+		if (Button(">>>")) {
+			single_step = 2;
+		}
+
+		Separator();
+		PushItemWidth(GetFontSize() * 6);
+		Text("Step: %06d", single_step_instruction_increment);
+		SameLine();
+		if (SliderInt("###Cycles", (int*)&step, 1, 6)) {
+			switch (step) {
+				case 1:
+					single_step_instruction_increment = 1;
+					break;
+				case 2:
+					single_step_instruction_increment = 10;
+					break;
+				case 3:
+					single_step_instruction_increment = 100;
+					break;
+				case 4:
+					single_step_instruction_increment = 1000;
+					break;
+				case 5:
+					single_step_instruction_increment = 10000;
+					break;
+				case 6:
+					single_step_instruction_increment = 100000;
+					break;
+			}
+		}
+		PopItemWidth();
+
+		Text("Step Count: %d", single_step_instruction_count);
+	}
+	else {
+		if (Button("||")) {
+			single_step = 1;
+		}
+	}
+
+	Separator();
+	Text("PC: %04X", cpu.pc);
+	Separator();
+	Text("SP: %04X", cpu.sp);
+	Separator();
+	Text("BC: %02X%02X", cpu.registers[REG_B], cpu.registers[REG_C]);
+	Separator();
+	Text("DE: %02X%02X", cpu.registers[REG_D], cpu.registers[REG_E]);
+	Separator();
+	Text("HL: %02X%02X", cpu.registers[REG_H], cpu.registers[REG_L]);
+	Separator();
+	Text("A: %02X", cpu.registers[REG_A]);
+	Separator();
+	Text("PSW: %02X%02X", cpu.registers[REG_FLAGS], cpu.registers[REG_A]);
+	
+	Separator();
+
+	Text("SF: %01X ", cpu.status_flags->SF);
+	SameLine();
+	Text("ZF: %01X ", cpu.status_flags->ZF);
+	Text("PF: %01X ", cpu.status_flags->PF);
+	SameLine();
+	Text("CF: %01X ", cpu.status_flags->CF);
+	Text("AF: %01X ", cpu.status_flags->AF);
+
+	Separator();
+	
+	Text("INT: %01X ", cpu.flags.interrupt);
+	SameLine();
+	Text("HALT: %01X ", cpu.flags.halt);
+
+	Separator();
+	
+	Text("Shift16: %04X", invaders.shift_reg);
+
+	End();
+}
+static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
+	
+	Begin("Menu", (bool*)&ui_state.show_menu_window);	
+	Separator();
+	if (Button("Debug")) {
+		ui_state.show_debug_window ^= 1;
+	}	
+	SameLine();
+	if (Button("RAM")) {
+		imgui.ram_editor->Open ^= 1;
+	}
+	SameLine();
+	if (Button("ROM")) {
+		imgui.rom_editor->Open ^= 1;
+	}
+	SameLine();
+	if (Button("VIDEO")) {
+		imgui.video_editor->Open ^= 1;
+	}
+	Separator();
+	if (Button("DECODE")) {
+		ui_state.show_decode_window ^= 1;
+	}
+	SameLine();
+	if (Button("HL")) {
+		ui_state.show_hl_window ^= 1;
+	}
+	SameLine();
+	if (Button("DE")) {
+		ui_state.show_de_window ^= 1;
+	}
+	SameLine();
+	if (Button("STACK")) {
+		ui_state.show_stack_window ^= 1;
+	}
+	SameLine();
+	if (Button("DIP SW")) {
+		ui_state.show_dip_switch_window ^= 1;
+	}
+	Separator();
+	End();
+}
+
+static void dip_switch(uint8_t* v, uint8_t id_offset, const char* dip_name) {
+	const ImU32 on = IM_COL32(255, 255, 255, 255);
+	const ImU32 off = IM_COL32(0, 0, 0, 255);
+	const ImU32 background = IM_COL32(0, 255, 0, 0);
+	const ImVec2 scale = ImVec2(15, 25);
+
+	Text("%s (%X)", dip_name, *v);
+
+	/* DIP SWITCH ON ROW */
+	for (int i = 0; i < 8; ++i) {
+		PushID(i+id_offset);
+		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 1 ? on : off);
+		if (Button("", scale)) {
+			set_bit(*v, i);
+		}
+		PopStyleColor();
+		PopID();
+		if (i < 7) SameLine();
+	}
+
+	/* DIP SWITCH OFF ROW */
+	for (int i = 0; i < 8; ++i) {
+		PushID(i+8+id_offset);
+		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 0 ? on : off);
+		if (Button("", scale)) {
+			clear_bit(*v, i);
+		}
+		PopStyleColor();
+		PopID();
+		if (i < 7) SameLine();
+	}
+}
