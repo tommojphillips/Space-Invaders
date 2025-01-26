@@ -70,10 +70,10 @@ The project directory structure should look like this:
 Space-Invaders\
       | -- lib\
       |        | -- i8080\
-      |        |              | -- i8080.h
-      |        |              | -- i8080.c
-      |        |              | -- i8080_defines.h
-      |        |              | -- i8080_mnem.c
+      |        |          | -- i8080.h
+      |        |          | -- i8080.c
+      |        |          | -- i8080_defines.h
+      |        |          | -- i8080_mnem.c
       |        |
       |        | -- imgui\
       |        |          | -- backends\
