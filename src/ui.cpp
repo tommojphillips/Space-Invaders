@@ -69,7 +69,8 @@ static void stack_window();
 static void hl_window();
 static void de_window();
 static void dip_switch_window();
-static void dip_switch(uint8_t* v, uint8_t id, const char* dip_name);
+static void dip_switch8(uint8_t* v, uint8_t id, const char* dip_name);
+static void dip_switch16(uint16_t* v, uint8_t id, const char* dip_name);
 static void set_default_settings();
 
 void imgui_init() {
@@ -160,9 +161,6 @@ void imgui_update() {
 	if (ui_state.show_de_window) {
 		de_window();
 	}
-	if (ui_state.show_dip_switch_window) {
-		dip_switch_window();
-	}
 	Render();	
 	ImGui_ImplSDLRenderer2_RenderDrawData(GetDrawData(), sdl.game_renderer);
 }
@@ -178,6 +176,7 @@ static void set_default_settings() {
 
 	ui_state.show_menu_window = 0;
 	ui_state.show_debug_window = 1;
+	ui_state.show_dip_switch_window = 1;
 
 	ui_state.show_ram_window = 0;
 	ui_state.cols_ram_window = 16;
@@ -255,13 +254,46 @@ static void de_window() {
 }
 static void dip_switch_window() {
 
-	dip_switch((uint8_t*)&invaders.io_input.input1, 31, "Input-1");
+	//dip_switch((uint8_t*)&invaders.io_input.input1, 31, "Input-1");
+	//Separator();
+	//dip_switch((uint8_t*)&invaders.io_input.input2, 63, "Input-2");
+
+	bool tmp = !invaders.io_input.input2.extra_ship;
+	if (Checkbox("Extra ship at 1500", &tmp)) {
+		invaders.io_input.input2.extra_ship = !tmp;
+	}
+	SameLine();
+	tmp = invaders.io_input.input2.extra_ship;
+	if (Checkbox("Extra ship at 1000", &tmp)) {
+		invaders.io_input.input2.extra_ship = tmp;
+	}
+
+	static int lives = 3;
+	Text("Lives: ");
+	SameLine();
+	if (SliderInt("###Lives", &lives, 3, 6)) {
+		switch (lives) {
+		case 3:
+			invaders.io_input.input2.ship1 = 0;
+			invaders.io_input.input2.ship2 = 0;
+			break;
+		case 4:
+			invaders.io_input.input2.ship1 = 1;
+			invaders.io_input.input2.ship2 = 0;
+			break;
+		case 5:
+			invaders.io_input.input2.ship1 = 0;
+			invaders.io_input.input2.ship2 = 1;
+			break;
+		case 6:
+			invaders.io_input.input2.ship1 = 1;
+			invaders.io_input.input2.ship2 = 1;
+			break;
+		}
+	}
+
 	Separator();
-	dip_switch((uint8_t*)&invaders.io_input.input2, 63, "Input-2");
-	Separator();
-	dip_switch((uint8_t*)&invaders.io_output.sound1, 127, "Sound-1");
-	Separator();
-	dip_switch((uint8_t*)&invaders.io_output.sound2, 255, "Sound-2");
+	dip_switch16((uint16_t*)&invaders.io_output.sound1, 127, "Sound");
 }
 static void debug_window() {
 	Begin("Debug", (bool*)&ui_state.show_debug_window);
@@ -373,7 +405,7 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 	if (Button("VIDEO")) {
 		imgui.video_editor->Open ^= 1;
 	}
-	Separator();
+	SameLine();
 	if (Button("DECODE")) {
 		ui_state.show_decode_window ^= 1;
 	}
@@ -389,15 +421,20 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 	if (Button("STACK")) {
 		ui_state.show_stack_window ^= 1;
 	}
-	SameLine();
+	Separator();
 	if (Button("DIP SW")) {
 		ui_state.show_dip_switch_window ^= 1;
 	}
 	Separator();
+
+	if (ui_state.show_dip_switch_window) {
+		dip_switch_window();
+	}
+
 	End();
 }
 
-static void dip_switch(uint8_t* v, uint8_t id_offset, const char* dip_name) {
+static void dip_switch8(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 	const ImU32 on = IM_COL32(255, 255, 255, 255);
 	const ImU32 off = IM_COL32(0, 0, 0, 255);
 	const ImU32 background = IM_COL32(0, 255, 0, 0);
@@ -407,7 +444,7 @@ static void dip_switch(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 
 	/* DIP SWITCH ON ROW */
 	for (int i = 0; i < 8; ++i) {
-		PushID(i+id_offset);
+		PushID(i + id_offset);
 		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 1 ? on : off);
 		if (Button("", scale)) {
 			set_bit(*v, i);
@@ -419,7 +456,7 @@ static void dip_switch(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 
 	/* DIP SWITCH OFF ROW */
 	for (int i = 0; i < 8; ++i) {
-		PushID(i+8+id_offset);
+		PushID(i + 8 + id_offset);
 		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 0 ? on : off);
 		if (Button("", scale)) {
 			clear_bit(*v, i);
@@ -427,5 +464,37 @@ static void dip_switch(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 		PopStyleColor();
 		PopID();
 		if (i < 7) SameLine();
+	}
+}
+static void dip_switch16(uint16_t* v, uint8_t id_offset, const char* dip_name) {
+	const ImU32 on = IM_COL32(255, 255, 255, 255);
+	const ImU32 off = IM_COL32(0, 0, 0, 255);
+	const ImU32 background = IM_COL32(0, 255, 0, 0);
+	const ImVec2 scale = ImVec2(15, 25);
+
+	Text("%s (%X)", dip_name, *v);
+
+	/* DIP SWITCH ON ROW */
+	for (int i = 0; i < 16; ++i) {
+		PushID(i + id_offset);
+		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 1 ? on : off);
+		if (Button("", scale)) {
+			set_bit(*v, i);
+		}
+		PopStyleColor();
+		PopID();
+		if (i < 15) SameLine();
+	}
+
+	/* DIP SWITCH OFF ROW */
+	for (int i = 0; i < 16; ++i) {
+		PushID(i + 16 + id_offset);
+		PushStyleColor(ImGuiCol_Button, get_bit(*v, i) == 0 ? on : off);
+		if (Button("", scale)) {
+			clear_bit(*v, i);
+		}
+		PopStyleColor();
+		PopID();
+		if (i < 15) SameLine();
 	}
 }
