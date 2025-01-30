@@ -19,7 +19,11 @@ I've mapped both player 1 and player 2 controls to the same keys.
 | 3           | Insert Coin                |
 | C           | Insert Coin                |
 
- ---
+---
+
+A Windows binary is available for download on the releases page. See: [Releases](https://github.com/tommojphillips/Space-Invaders/releases)
+
+---
 
 ### Dependencies 
  - IMGUI v1.91.6 - https://github.com/ocornut/imgui/releases/tag/v1.91.6
@@ -41,7 +45,7 @@ The project is built in Visual Studio 2022
   2. CD to `lib/` dir
   
   ```
-  cd 8080-Core/lib
+  cd Space-Invaders/lib
   ```
     
   3. Clone `imgui` into `lib/` dir
@@ -57,23 +61,23 @@ The project is built in Visual Studio 2022
   ```
  
   5. Download SDL2 VC package [`SDL2-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-VC.zip) (direct download link)
-     - Extract and copy the `include` and `lib` folders into `lib/SDL2` you will have to create the `SDL2` directory
+     - Extract and copy the `include` and `lib` folders into `Space-Invaders/lib/SDL2` you will have to create the `SDL2` directory
 
   6. Download SDL2 Image VC package [`SDL2_Image-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.4/SDL2_image-devel-2.8.4-VC.zip) (direct download link)
-     - Extract the `include` and `lib` folders into `lib/SDL2_Image` you will have to create the `SDL2_Image` directory
+     - Extract the `include` and `lib` folders into `Space-Invaders/lib/SDL2_Image` you will have to create the `SDL2_Image` directory
   
-  7. Open `vc\8080-Core.sln` in visual studio and build and run
+  7. Open `vc\Space-Invaders.sln` in visual studio and build and run
 
 The project directory structure should look like this:
 
 ```
-8080-Core\
+Space-Invaders\
       | -- lib\
       |        | -- i8080\
-      |        |              | -- i8080.h
-      |        |              | -- i8080.c
-      |        |              | -- i8080_defines.h
-      |        |              | -- i8080_mnem.c
+      |        |          | -- i8080.h
+      |        |          | -- i8080.c
+      |        |          | -- i8080_defines.h
+      |        |          | -- i8080_mnem.c
       |        |
       |        | -- imgui\
       |        |          | -- backends\
@@ -92,6 +96,6 @@ The project directory structure should look like this:
       | -- src\
       |
       | -- vc\
-      |       | -- 8080-Core.sln
-      |       | -- 8080-Core.vcxproj
+      |       | -- Space-Invaders.sln
+      |       | -- Space-Invaders.vcxproj
 ```
