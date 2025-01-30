@@ -10,8 +10,6 @@
 #include "SDL_image.h"
 
 #include "window_sdl2.h"
-#include "i8080.h"
-#include "invaders.h"
 
 SDL_STATE sdl = { 0 };
 WINDOW_CFG* window_cfg = NULL;
@@ -102,10 +100,10 @@ void sdl_destroy() {
 }
 void sdl_update() {
 	while (SDL_PollEvent(&sdl.e)) {
+		sdl_process_event();	
 		imgui_process_event();
 		display_process_event();
 		input_process_event();
-		sdl_process_event();		
 	}
 }
 void sdl_render() {
@@ -141,7 +139,8 @@ void sdl_process_event() {
 static void set_default_settings() {
 	window_state->win_x = SDL_WINDOWPOS_CENTERED;
 	window_state->win_y = SDL_WINDOWPOS_CENTERED;
-	window_state->last_window_state = 0;	
+	window_state->last_window_state = 0;
 	window_state->win_w = 448 + 20;
 	window_state->win_h = 512 + 20;
+	window_cfg->px_on.g = 206;
 }

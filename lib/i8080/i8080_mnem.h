@@ -13,10 +13,10 @@ typedef struct {
 	uint8_t opcode;
 	uint16_t pc;
 	char str[32];
-} CPU_MNEM;
+} I8080_MNEM;
 
-void cpu_mnem_init(CPU_MNEM* mnem, I8080* cpu);
-void cpu_mnem(CPU_MNEM* mnem, uint16_t pc);
+void cpu_mnem_init(I8080_MNEM* mnem, I8080* cpu);
+void cpu_mnem(I8080_MNEM* mnem, uint16_t pc);
 
 #ifdef __cplusplus
 };

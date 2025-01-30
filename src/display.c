@@ -46,6 +46,10 @@ void display_process_event() {
 	}
 }
 void display_draw_buffer() {
+	if (invaders.mm.video == NULL) {
+		return;
+	}
+
 	int i = 0;
 	for (int x = 0; x < DISPLAY_W; ++x) {
 		for (int y = 0; y < DISPLAY_H; y += 8) {

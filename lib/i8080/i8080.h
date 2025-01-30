@@ -28,14 +28,14 @@ enum {
 };
 
 typedef struct _STATUS_FLAGS {
-	uint8_t CF : 1;	
+	uint8_t c : 1;	
 	uint8_t _one : 1;
-	uint8_t PF : 1;
+	uint8_t p : 1;
 	uint8_t _zero2 : 1;
-	uint8_t AF : 1;
+	uint8_t h : 1;
 	uint8_t _zero1 : 1;
-	uint8_t ZF : 1;
-	uint8_t SF : 1;
+	uint8_t z : 1;
+	uint8_t s : 1;
 } STATUS_FLAGS;
 
 typedef struct {
@@ -51,20 +51,27 @@ typedef struct {
 	CPU_FLAGS flags;
 	uint32_t cycles;
 	uint8_t opcode;
+
+	uint8_t(*read_byte)(uint16_t);
+	void(*write_byte)(uint16_t, uint8_t);
+
+	uint8_t(*read_io)(uint8_t);
+	void(*write_io)(uint8_t, uint8_t);
+
 } I8080;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+void i8080_init(I8080* cpu);
 void i8080_reset(I8080* cpu);
 int i8080_execute(I8080* cpu);
 
-uint8_t i8080_read_byte(I8080* cpu, uint16_t address);
+/*uint8_t i8080_read_byte(I8080* cpu, uint16_t address);
 void i8080_write_byte(I8080* cpu, uint16_t address, uint8_t value);
-
 uint8_t i8080_read_io(I8080* cpu, uint8_t port);
-void i8080_write_io(I8080* cpu, uint8_t port, uint8_t value);
+void i8080_write_io(I8080* cpu, uint8_t port, uint8_t value);*/
 
 #ifdef __cplusplus
 };

@@ -25,93 +25,109 @@
 #define L  cpu->registers[REG_L]
 #define F  cpu->registers[REG_FLAGS]
 
-#define SF cpu->status_flags->SF
-#define CF cpu->status_flags->CF
-#define ZF cpu->status_flags->ZF
-#define AF cpu->status_flags->AF
-#define PF cpu->status_flags->PF
+#define SF cpu->status_flags->s
+#define CF cpu->status_flags->c
+#define ZF cpu->status_flags->z
+#define AF cpu->status_flags->h
+#define PF cpu->status_flags->p
 
 #define SSS (cpu->opcode & 0b111)
 #define DDD ((cpu->opcode >> 3) & 0b111)
 
-#define READ_BYTE(address) i8080_read_byte(cpu, address)
-#define WRITE_BYTE(address, value) i8080_write_byte(cpu, address, value)
+#define READ_BYTE(address) cpu->read_byte(address)
+#define WRITE_BYTE(address, value) cpu->write_byte(address, value)
 
-#define READ_IO(port) i8080_read_io(cpu, port)
-#define WRITE_IO(port, value) i8080_write_io(cpu, port, value)
+#define READ_IO(port) cpu->read_io(port)
+#define WRITE_IO(port, value) cpu->write_io(port, value)
 
 #define READ_WORD(address) ((READ_BYTE((address) + 1) << 8) | READ_BYTE(address))
 #define READ_ADDRESS READ_WORD(PC+1);
 #define READ_STACK_ADDRESS READ_WORD(SP)
 
+#define VFLAG_ADD(a, b, r, m) (((((a) ^ (r)) & ((b) ^ (r))) & (m)) != 0)
+#define CFLAG_ADD(a, b, r, m) (((((a) & (b)) | ((a) & (~(r))) | ((b) & (~(r)))) & (m)) != 0)
+
+#define VFLAG_SUB(a, b, r, m) VFLAG_ADD((r), (b), (a), (m))
+#define CFLAG_SUB(a, b, r, m) CFLAG_ADD((r), (b), (a), (m))
+
+#define SET_ZSP(x) \
+	ZF = (x) == 0; \
+	SF = (x) >> 7; \
+	PF = cal_parity_8bit((x) & 0xFF);
+
 static uint8_t cal_parity_8bit(uint8_t value) {
 	value ^= value >> 4;
 	value ^= value >> 2;
-	value ^= value >> 1;	
-	return (value & 1) ^ 1; // ~(value & 1) & 1;
+	value ^= value >> 1;
+	return (value & 1) ^ 1;
 }
+static uint8_t cal_carry(uint8_t bits, uint8_t x1, uint8_t x2) {
+	int16_t result = (x1 + x2);
+	int16_t carry = result ^ x1 ^ x2;
+	return (carry & (1 << bits)) != 0 ? 1 : 0;
+}
+static uint8_t cal_carry_over(uint8_t bits, uint8_t x1, uint8_t x2, uint8_t c) {
+	int16_t result = (x1 + x2 + c);
+	int16_t carry = result ^ x1 ^ x2;
+	return (carry & (1 << bits)) > 0 ? 1 : 0;
+}
+
 static void alu_and(I8080* cpu, uint8_t* x1, uint8_t x2) {
-	*x1 &= x2;
-	SF = (*x1 & 0x80) != 0;
-	ZF = (*x1 == 0);
-	AF = 0;
-	PF = cal_parity_8bit(*x1);
+	uint8_t tmp = (*x1 & x2);
+	AF = ((*x1 | x2) & 0x08) != 0;
 	CF = 0;
+	SET_ZSP(tmp);
+	*x1 = tmp;
 }
 static void alu_xor(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	*x1 ^= x2;
-	SF = (*x1 & 0x80) != 0;
-	ZF = (*x1 == 0);
 	AF = 0;
-	PF = cal_parity_8bit(*x1);
 	CF = 0;
+	SET_ZSP(*x1);
 }
 static void alu_or(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	*x1 |= x2;
-	SF = (*x1 & 0x80) != 0;
-	ZF = (*x1 == 0);
 	AF = 0;
-	PF = cal_parity_8bit(*x1);
 	CF = 0;
+	SET_ZSP(*x1);
 }
+
 static void alu_add(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 + x2);
-	SF = (tmp & 0x80) != 0;
-	ZF = (tmp & 0xFF) == 0;
-	AF = ((*x1 ^ x2 ^ tmp) & 0x10) != 0;
-	PF = cal_parity_8bit(tmp & 0xFF);
-	CF = (tmp > 0xFF);
+	AF = CFLAG_ADD(*x1, x2, tmp, 0x08);
+	CF = CFLAG_ADD(*x1, x2, tmp, 0x80);
+	SET_ZSP(tmp);
 	*x1 = (tmp & 0xFF);
 }
 static void alu_adc(I8080* cpu, uint8_t* x1, uint8_t x2) {
-	uint16_t tmp = (*x1 + x2 + CF);
-	SF = (tmp & 0x80) != 0;
-	ZF = (tmp & 0xFF) == 0;
-	AF = ((*x1 ^ x2 ^ tmp) & 0x10) != 0;
-	PF = cal_parity_8bit(tmp & 0xFF);
-	CF = (tmp > 0xFF);
+	uint8_t carry = CF;
+	uint16_t tmp = (*x1 + x2 + carry);
+	AF = CFLAG_ADD(*x1, x2+carry, tmp, 0x08);
+	CF = CFLAG_ADD(*x1, x2+carry, tmp, 0x80);
+	SET_ZSP(tmp);
 	*x1 = (tmp & 0xFF);
 }
+
 static void alu_sub(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 - x2);
-	SF = (tmp & 0x80) != 0;
-	ZF = ((tmp & 0xFF) == 0);
-	AF = ((*x1 ^ x2 ^ tmp) & 0x10) != 0;
-	PF = cal_parity_8bit(tmp & 0xFF);
-	CF = (*x1 < x2);
-	*x1 = (tmp & 0xFF);
+	AF = CFLAG_SUB(*x1, x2, tmp, 0x08);
+	CF = CFLAG_SUB(*x1, x2, tmp, 0x80);
+	SET_ZSP(tmp);
+	*x1 = tmp & 0xFF;
 }
 static void alu_sbb(I8080* cpu, uint8_t* x1, uint8_t x2) {
-	uint16_t tmp = (*x1 - x2 - CF);
-	SF = (tmp & 0x80) != 0;
-	ZF = ((tmp & 0xFF) == 0);
-	AF = ((*x1 ^ x2 ^ tmp) & 0x10) != 0;
-	PF = cal_parity_8bit(tmp & 0xFF);
-	CF = (*x1 < (x2 + CF));
-	*x1 = (tmp & 0xFF);
+	uint8_t carry = CF;
+	uint16_t tmp = (*x1 - x2 - carry);
+	AF = CFLAG_SUB(*x1, x2-carry, tmp, 0x08);
+	CF = CFLAG_SUB(*x1, x2-carry, tmp, 0x80);
+	SET_ZSP(tmp);
+	*x1 = tmp & 0xFF;
 }
 static void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2) {
-	alu_sub(cpu, &x1, x2);
+	uint16_t tmp = (x1 - x2);
+	AF = CFLAG_SUB(x1, x2, tmp, 0x08);
+	CF = CFLAG_SUB(x1, x2, tmp, 0x80);
+	SET_ZSP(tmp);	
 }
 
 void push_byte(I8080* cpu, uint8_t value) {
@@ -124,9 +140,9 @@ void pop_byte(I8080* cpu, uint8_t* value) {
 }
 
 void push_word(I8080* cpu, uint16_t value) {
-	WRITE_BYTE(SP - 1, (value >> 8) & 0xFF);
-	WRITE_BYTE(SP - 2, value & 0xFF);
-	SP -= 2;
+	WRITE_BYTE(cpu->sp - 1, (value >> 8) & 0xFF);
+	WRITE_BYTE(cpu->sp - 2, value & 0xFF);
+	cpu->sp -= 2;
 }
 void pop_word(I8080* cpu, uint16_t* value) {
 	*value = READ_STACK_ADDRESS;
@@ -186,7 +202,7 @@ void CZ(I8080* cpu) {
 	}
 }
 void CNZ(I8080* cpu) {
-	if (!CF) {
+	if (!ZF) {
 		call(cpu);
 		CYCLES(17);
 	}
@@ -471,6 +487,12 @@ void PUSH_HL(I8080* cpu) {
 }
 void PUSH_PSW(I8080* cpu) {
 	/* Push PSW */
+
+	/* restore always 1, 0 flags in FLAGS */
+	cpu->status_flags->_zero1 = 0;
+	cpu->status_flags->_zero2 = 0;
+	cpu->status_flags->_one = 1;
+
 	push_byte(cpu, A);
 	push_byte(cpu, F);
 	PC += 1;
@@ -502,6 +524,12 @@ void POP_PSW(I8080* cpu) {
 	/* Pop PSW */
 	pop_byte(cpu, &F);
 	pop_byte(cpu, &A);
+
+	/* Restore always 1, 0 flags in FLAGS */
+	cpu->status_flags->_zero1 = 0;
+	cpu->status_flags->_zero2 = 0;
+	cpu->status_flags->_one = 1;
+
 	PC += 1;
 	CYCLES(10);
 }
@@ -523,12 +551,15 @@ void LDA(I8080* cpu) {
 
 void XCHG(I8080* cpu) {
 	/* Exchange HL with DE */
-	uint8_t tmp = L;
-	L = E;
-	E = tmp;
-	tmp = H;
+	uint8_t l = L;
+	uint8_t h = H;
+
 	H = D;
-	D = tmp;
+	L = E;
+
+	D = h;
+	E = l;
+
 	PC += 1;
 	CYCLES(4);
 }
@@ -669,17 +700,19 @@ void MOV_I_M(I8080* cpu) {
 
 void INR_R(I8080* cpu) {
 	/* Increment r */
-	uint8_t carry = CF;
-	alu_add(cpu, &cpu->registers[DDD], 1);
-	CF = carry;
+	uint8_t tmp = cpu->registers[DDD] + 1;
+	AF = (tmp & 0xF) == 0;
+	SET_ZSP(tmp);
+	cpu->registers[DDD] = tmp;
 	PC += 1;
 	CYCLES(5);
 }
 void DCR_R(I8080* cpu) {
 	/* Decrement r */
-	uint8_t carry = CF;
-	alu_sub(cpu, &cpu->registers[((cpu->opcode >> 3) & 0b111)], 1);
-	CF = carry;
+	uint8_t tmp = cpu->registers[DDD] - 1;
+	AF = !((tmp & 0xF) == 0xF);
+	SET_ZSP(tmp);
+	cpu->registers[DDD] = tmp;
 	PC += 1;
 	CYCLES(5);
 }
@@ -687,10 +720,9 @@ void DCR_R(I8080* cpu) {
 void INR_M(I8080* cpu) {
 	/* Increment [HL] */
 	uint16_t address = (H << 8) | L;
-	uint8_t tmp = READ_BYTE(address);
-	uint8_t carry = CF;
-	alu_add(cpu, &tmp, 1);
-	CF = carry;
+	uint8_t tmp = READ_BYTE(address) + 1;
+	AF = (tmp & 0xF) == 0;
+	SET_ZSP(tmp);
 	WRITE_BYTE(address, tmp);
 	PC += 1; 
 	CYCLES(10);
@@ -698,10 +730,9 @@ void INR_M(I8080* cpu) {
 void DCR_M(I8080* cpu) {
 	/* Decrement [HL] */
 	uint16_t address = (H << 8) | L;
-	uint8_t tmp = READ_BYTE(address);
-	uint8_t carry = CF;
-	alu_sub(cpu, &tmp, 1);
-	CF = carry;
+	uint8_t tmp = READ_BYTE(address) - 1;
+	AF = !((tmp & 0xF) == 0xF);
+	SET_ZSP(tmp);
 	WRITE_BYTE(address, tmp);
 	PC += 1;
 	CYCLES(10);
@@ -1072,6 +1103,25 @@ void NOP(I8080* cpu) {
 	CYCLES(4);
 }
 
+uint8_t cpu_read_byte(uint16_t address) {
+	return 0;
+}
+void cpu_write_byte(uint16_t address, uint8_t value) {
+}
+
+uint8_t cpu_read_io(uint8_t port) {
+	return 0;
+}
+void cpu_write_io(uint8_t port, uint8_t value) {
+}
+
+void i8080_init(I8080* cpu) {
+	cpu->read_byte = cpu_read_byte;
+	cpu->write_byte = cpu_write_byte;
+	cpu->read_io = cpu_read_io;
+	cpu->write_io = cpu_write_io;
+	i8080_reset(cpu);
+}
 void i8080_reset(I8080* cpu) {
 	cpu->flags.halt = 0;
 	cpu->flags.interrupt = 0;
@@ -1083,6 +1133,11 @@ void i8080_reset(I8080* cpu) {
 	for (int i = 0; i < REG_COUNT; ++i) {
 		cpu->registers[i] = 0;
 	}
+
+	/* restore always 1, 0 flags in F*/
+	cpu->status_flags->_zero1 = 0;
+	cpu->status_flags->_zero2 = 0;
+	cpu->status_flags->_one = 1;
 }
 int i8080_execute(I8080* cpu) {
 	

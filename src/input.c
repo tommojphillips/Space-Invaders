@@ -3,6 +3,7 @@
 
 #include "window_sdl2.h"
 #include "invaders.h"
+#include "emulator.h"
 
 static void game_input(uint8_t v);
 
@@ -48,14 +49,10 @@ static void game_input(uint8_t v) {
 			invaders.io_input.input1.coin = v;
 			break;
 
-		case SDLK_r: // RESET
-			if (sdl.e.key.keysym.mod & KMOD_LCTRL) invaders_reset();
+		case SDLK_r:
+			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) {
+				emu.reset();
+			}
 			break;
-	}
-	
-	if (sdl.e.key.keysym.mod & KMOD_LCTRL) {
-		switch (sdl.e.key.keysym.sym) {
-		
-		}
-	}
+	}	
 }

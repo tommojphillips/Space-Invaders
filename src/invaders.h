@@ -21,7 +21,6 @@ typedef struct {
 #define PORT_SOUND2 5
 #define PORT_WATCHDOG 6
 
-
 typedef struct {
 	uint8_t coin : 1;
 	uint8_t two_player : 1;
@@ -36,7 +35,7 @@ typedef struct {
 typedef struct {
 	uint8_t ship1 : 1;
 	uint8_t ship2 : 1;
-	uint8_t diff_mode : 1; // 0 = hard, 1 = easy
+	uint8_t tilt : 1;
 	uint8_t undefined_1 : 1;
 	uint8_t player_fire : 1;
 	uint8_t player_left : 1;
@@ -60,8 +59,6 @@ typedef struct {
 	INPUT_PORT io_input;
 	uint8_t shift_amount;
 	uint16_t shift_reg;
-	//uint8_t shift_lsb;
-	//uint8_t shift_msb;
 } INVADERS;
 
 #ifdef __cplusplus

@@ -170,20 +170,20 @@ void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2);
 #define HL	cpu.register_pairs[RP_HL]
 #define PSW	cpu.register_pairs[RP_PSW]
 
-#define SF cpu.status_flags->SF
-#define CF cpu.status_flags->CF
-#define ZF cpu.status_flags->ZF
-#define AF cpu.status_flags->AF
-#define PF cpu.status_flags->PF
+#define SF cpu.status_flags->s
+#define CF cpu.status_flags->c
+#define ZF cpu.status_flags->z
+#define AF cpu.status_flags->h
+#define PF cpu.status_flags->p
 
 #define SSS (cpu.opcode & 0b111)
 #define DDD ((cpu.opcode >> 3) & 0b111)
 
-#define READ_BYTE(address) i8080_read_byte(&cpu, address)
-#define WRITE_BYTE(address, value) i8080_write_byte(&cpu, address, value)
+#define READ_BYTE(address) cpu.read_byte(address)
+#define WRITE_BYTE(address, value) cpu.write_byte(address, value)
 
-#define READ_IO(port) i8080_read_io(&cpu, port)
-#define WRITE_IO(port, value) i8080_write_io(&cpu, port, value)
+#define READ_IO(port) cpu.read_io(port)
+#define WRITE_IO(port, value) cpu.write_io(port, value)
 
 #define ASSERT_EQUAL(expected, actual, message) \
     if ((expected) != (actual)) { \
@@ -211,9 +211,9 @@ void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2);
 #define CPU_EXECUTE i8080_execute(&cpu)
 
 #define PASS return 0
-#define TEST_INIT \
-    I8080 cpu; \
-    CPU_RESET;
+#define TEST_INIT //I8080 cpu; i8080_init(&cpu);
+
+extern I8080 cpu;
 
 void run_test(const char* test_name, int (*test_func)()) {
     if (test_func() == 0) {
@@ -686,6 +686,144 @@ int test_pchl() {
     PASS;
 }
 
+
+int tst8080() {
+    TEST_INIT;
+
+    // TEST JUMP INSTRUCTIONS AND FLAGS
+
+    //  TST8080 offset: 01BB
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xE6); // ANI 0h
+    WRITE_BYTE(0x4001, 0x00);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(1, ZF, "ZF after tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after tst8080");
+    ASSERT_EQUAL_HEX(1, PF, "PF after tst8080");
+
+    //  TST8080 offset: 01E7
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xC6); // ADI 06h
+    WRITE_BYTE(0x4001, 0x06);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(6, A, "A after 01E7 tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 01E7 tst8080");
+    ASSERT_EQUAL_HEX(1, PF, "PF after 01E7 tst8080");
+    ASSERT_EQUAL_HEX(0, SF, "SF after 01E7 tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after 01E7 tst8080");
+
+    //  TST8080 offset: 01FB
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xC6); // ADI 70h
+    WRITE_BYTE(0x4001, 0x70);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x76, A, "A after 01FB tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 01FB tst8080");
+    ASSERT_EQUAL_HEX(0, PF, "PF after 01FB tst8080");
+    ASSERT_EQUAL_HEX(0, SF, "SF after 01FB tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after 01FB tst8080");
+
+    //  TST8080 offset:  020F
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xC6); // ADI 81h
+    WRITE_BYTE(0x4001, 0x81);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf7, A, "A after 020F tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 020F tst8080");
+    ASSERT_EQUAL_HEX(0, PF, "PF after 020F tst8080");
+    ASSERT_EQUAL_HEX(1, SF, "SF after 020F tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after 020F tst8080");
+
+    //  TST8080 offset:  C6FE
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xC6); // ADI FEh
+    WRITE_BYTE(0x4001, 0xfe);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf5, A, "A after C6FE tst8080");
+    ASSERT_EQUAL_HEX(1, CF, "CF after C6FE tst8080");
+    ASSERT_EQUAL_HEX(1, PF, "PF after C6FE tst8080");
+    ASSERT_EQUAL_HEX(1, SF, "SF after C6FE tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after C6FE tst8080");
+
+    // TEST ACCUMULATOR IMMEDIATE INSTRUCTIONS
+
+    //  TST8080 offset:  0237
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xfe); // CPI 0h
+    WRITE_BYTE(0x4001, 0x00);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf5, A, "A after 0237 tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 0237 tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after 0237 tst8080");
+
+    //  TST8080 offset:  023F
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xfe); // CPI f5h
+    WRITE_BYTE(0x4001, 0xf5);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf5, A, "A after 023F tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 023F tst8080");
+    ASSERT_EQUAL_HEX(1, ZF, "ZF after 023F tst8080");
+
+    //  TST8080 offset:  0247
+
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xfe); // CPI ffh
+    WRITE_BYTE(0x4001, 0xff);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf5, A, "A after 0247 tst8080");
+    ASSERT_EQUAL_HEX(1, CF, "CF after 0247 tst8080");
+    ASSERT_EQUAL_HEX(0, ZF, "ZF after 0247 tst8080");
+
+
+    //  TST8080 offset:  0252
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xce); // ACI 0Ah
+    WRITE_BYTE(0x4001, 0x0A);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0, A, "A after 0252 tst8080");
+    ASSERT_EQUAL_HEX(1, CF, "CF after 0252 tst8080");
+
+    //  TST8080 offset:  0254
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xce); // ACI 0Ah
+    WRITE_BYTE(0x4001, 0x0A);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xB, A, "A after 0254 tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 0254 tst8080");
+
+
+    //  TST8080 offset:  025E
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xD6); // SUI 0Ch (SUB I)
+    WRITE_BYTE(0x4001, 0x0C);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xff, A, "A after 025E tst8080");
+    ASSERT_EQUAL_HEX(0, CF, "CF after 025E tst8080");
+
+    //  TST8080 offset:  0260
+    PC = 0x4000;
+    WRITE_BYTE(0x4000, 0xD6); // SUI 0Fh (SUB I)
+    WRITE_BYTE(0x4001, 0x0F);
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0xf0, A, "A after 0260 tst8080");
+    ASSERT_EQUAL_HEX(1, CF, "CF after 0260 tst8080");
+
+    PASS;
+}
+
 #include "invaders.h"
 int test_reg16() {
     TEST_INIT;
@@ -735,7 +873,7 @@ int test_reg16() {
     PASS;
 }
 void test() {
-    run_test("dad", test_dad);    
+    /*run_test("dad", test_dad);
     run_test("sub", test_sub);
     run_test("and", test_and);
     run_test("xor", test_xor);
@@ -748,5 +886,6 @@ void test() {
     run_test("xthl", test_xthl);
     run_test("sphl", test_sphl);
     run_test("pchl", test_pchl);
-    run_test("REGISTER 16", test_reg16);
+    run_test("REGISTER 16", test_reg16);*/
+    run_test("tst8080", tst8080);
 }

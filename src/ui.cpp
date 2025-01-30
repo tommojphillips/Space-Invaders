@@ -13,6 +13,7 @@ using namespace ImGui;
 
 #include "i8080.h"
 #include "i8080_mnem.h"
+#include "emulator.h"
 #include "invaders.h"
 
 #define renderer_new_frame \
@@ -56,11 +57,7 @@ typedef struct {
 static IMGUI_STATE imgui = { 0 };
 
 extern "C" UI_STATE ui_state = { 0 };
-
-extern "C" CPU_MNEM mnem;
-extern "C" int single_step;
-extern "C" uint32_t single_step_instruction_increment;
-extern "C" int single_step_instruction_count;
+extern "C" I8080_MNEM mnem = { 0 };
 
 int step = 1;
 int follow_next_instruction = 1;
@@ -77,6 +74,7 @@ static void set_default_settings();
 
 void imgui_init() {
 	set_default_settings();
+	mnem.cpu = &cpu;
 }
 void imgui_create_renderer() {
 
@@ -218,7 +216,7 @@ static void stack_window() {
 		Text("%04X: ", cpu.sp + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", i8080_read_byte(&cpu, cpu.sp + k));
+			Text("%02X ", cpu.read_byte(cpu.sp + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -233,7 +231,7 @@ static void hl_window() {
 		Text("%04X: ", ptr + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", i8080_read_byte(&cpu, ptr + k));
+			Text("%02X ", cpu.read_byte(ptr + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -248,7 +246,7 @@ static void de_window() {
 		Text("%04X: ", ptr + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", i8080_read_byte(&cpu, ptr + k));
+			Text("%02X ", cpu.read_byte(ptr + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -268,85 +266,91 @@ static void dip_switch_window() {
 static void debug_window() {
 	Begin("Debug", (bool*)&ui_state.show_debug_window);
 	
-	if (single_step != 0) {
+	if (emu.single_step != SINGLE_STEP_NONE) {
 		if (ArrowButton("Continue", ImGuiDir_Right)) {
-			single_step = 0;
+			emu.single_step = SINGLE_STEP_NONE;
 		}
 		SameLine();
 		if (Button(">>>")) {
-			single_step = 2;
+			emu.single_step = SINGLE_STEPPING;
 		}
 
 		Separator();
 		PushItemWidth(GetFontSize() * 6);
-		Text("Step: %06d", single_step_instruction_increment);
+		Text("Step: %06d", emu.single_step_increment);
 		SameLine();
 		if (SliderInt("###Cycles", (int*)&step, 1, 6)) {
 			switch (step) {
 				case 1:
-					single_step_instruction_increment = 1;
+					emu.single_step_increment = 1;
 					break;
 				case 2:
-					single_step_instruction_increment = 10;
+					emu.single_step_increment = 10;
 					break;
 				case 3:
-					single_step_instruction_increment = 100;
+					emu.single_step_increment = 100;
 					break;
 				case 4:
-					single_step_instruction_increment = 1000;
+					emu.single_step_increment = 1000;
 					break;
 				case 5:
-					single_step_instruction_increment = 10000;
+					emu.single_step_increment = 10000;
 					break;
 				case 6:
-					single_step_instruction_increment = 100000;
+					emu.single_step_increment = 100000;
 					break;
 			}
 		}
 		PopItemWidth();
 
-		Text("Step Count: %d", single_step_instruction_count);
+		Text("Step Count: %d", emu.single_step_count);
 	}
 	else {
 		if (Button("||")) {
-			single_step = 1;
+			emu.single_step = SINGLE_STEP_AWAIT;
 		}
 	}
 
 	Separator();
 	Text("PC: %04X", cpu.pc);
+
 	Separator();
 	Text("SP: %04X", cpu.sp);
+
 	Separator();
 	Text("BC: %02X%02X", cpu.registers[REG_B], cpu.registers[REG_C]);
+
 	Separator();
 	Text("DE: %02X%02X", cpu.registers[REG_D], cpu.registers[REG_E]);
+
 	Separator();
 	Text("HL: %02X%02X", cpu.registers[REG_H], cpu.registers[REG_L]);
+
 	Separator();
 	Text("A: %02X", cpu.registers[REG_A]);
-	Separator();
-	Text("PSW: %02X%02X", cpu.registers[REG_FLAGS], cpu.registers[REG_A]);
-	
-	Separator();
-
-	Text("SF: %01X ", cpu.status_flags->SF);
-	SameLine();
-	Text("ZF: %01X ", cpu.status_flags->ZF);
-	Text("PF: %01X ", cpu.status_flags->PF);
-	SameLine();
-	Text("CF: %01X ", cpu.status_flags->CF);
-	Text("AF: %01X ", cpu.status_flags->AF);
 
 	Separator();
+	Text("PSW: %02X%02X", cpu.registers[REG_A], cpu.registers[REG_FLAGS]);
 	
+	Separator();
+	Text("SF: %01X ", cpu.status_flags->s);
+	SameLine();
+	Text("ZF: %01X ", cpu.status_flags->z);
+	Text("PF: %01X ", cpu.status_flags->p);
+	SameLine();
+	Text("CF: %01X ", cpu.status_flags->c);
+	Text("AF: %01X ", cpu.status_flags->h);
+
+	Separator();	
 	Text("INT: %01X ", cpu.flags.interrupt);
 	SameLine();
 	Text("HALT: %01X ", cpu.flags.halt);
 
-	Separator();
-	
+	Separator();	
 	Text("Shift16: %04X", invaders.shift_reg);
+	
+	Separator();
+	Text("Cycles: %d", cpu.cycles);
 
 	End();
 }

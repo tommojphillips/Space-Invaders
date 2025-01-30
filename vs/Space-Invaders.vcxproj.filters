@@ -57,13 +57,19 @@
     <ClCompile Include="..\lib\imgui\backends\imgui_impl_sdlrenderer2.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu_tests.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\display.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\emulator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -81,6 +87,15 @@
       <Filter>i8080</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\emulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
