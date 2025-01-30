@@ -8,7 +8,7 @@
 #define WINDOW_H (window_state->win_h)
 #define DISPLAY_W (224)
 #define DISPLAY_H (256)
-#define DISPLAY_PX_SIZE (2)
+#define DISPLAY_PX_SIZE (WINDOW_H / DISPLAY_H)
 
 #define X_CENTER ((WINDOW_W - (DISPLAY_W * DISPLAY_PX_SIZE)) >> 1)
 #define Y_CENTER ((WINDOW_H - (DISPLAY_H * DISPLAY_PX_SIZE)) >> 1)
