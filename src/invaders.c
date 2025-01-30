@@ -86,7 +86,7 @@ uint8_t invaders_read_io(uint8_t port) {
 		
 		case PORT_SHIFT_REG:
 			return (invaders.shift_reg >> (8 - invaders.shift_amount)) & 0xFF;
-
+			
 		default:
 			printf("Reading from undefined port: %02X\n", port);
 			break;

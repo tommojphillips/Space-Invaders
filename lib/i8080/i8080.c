@@ -51,8 +51,8 @@
 #define CFLAG_SUB(a, b, r, m) CFLAG_ADD((r), (b), (a), (m))
 
 #define SET_ZSP(x) \
-	ZF = (x) == 0; \
-	SF = (x) >> 7; \
+	ZF = ((x) == 0); \
+	SF = (((x) & 0x80) != 0); \
 	PF = cal_parity_8bit((x) & 0xFF);
 
 static uint8_t cal_parity_8bit(uint8_t value) {
@@ -1043,7 +1043,7 @@ void DAA(I8080* cpu) {
 	if ((A & 0x0F) > 9 || AF) {
 		correction |= 0x06;
 	}
-	if ((A >> 4) > 9 || carry) {
+	if ((A >> 4) > 9 || ((A >> 4) >= 9 && (A & 0x0F) > 9) || carry) {
 		correction |= 0x60;
 		carry = 1;
 	}
