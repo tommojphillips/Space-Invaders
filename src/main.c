@@ -31,7 +31,8 @@ int main(int argc, char** argv) {
 	imgui_init();
 	imgui_create_renderer();
 
-	emu.single_step = SINGLE_STEP_AWAIT;
+	//emu.single_step = SINGLE_STEP_AWAIT;
+	emu.single_step = SINGLE_STEP_NONE;
 	emu.single_step_count = 0;
 	emu.single_step_increment = 1;
 
