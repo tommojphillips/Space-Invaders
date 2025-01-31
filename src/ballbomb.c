@@ -20,6 +20,8 @@
 
 #define PORT_SOUND3 1
 
+void push_word(I8080* cpu, uint16_t value);
+
 static int load_rom() {
 	if (read_file_into_buffer("tn01", invaders.mm.rom + 0x000, 0x800) != 0) {
 		return 1;
@@ -192,7 +194,7 @@ void ballbomb_save_state() {
 	if (file == NULL) {
 		return;
 	}
-	fwrite(invaders.mm.ram, 1, 0x4000, file);
+	fwrite(invaders.mm.ram, 1, ROM_SIZE, file);
 	fwrite(&invaders.shift_amount, 1, 1, file);
 	fwrite(&invaders.shift_reg, 1, 2, file);
 	fwrite(&invaders.io_output, 1, 2, file);
@@ -206,7 +208,7 @@ void ballbomb_load_state() {
 		return;
 	}
 
-	fread(invaders.mm.ram, 1, 0x4000, file);
+	fread(invaders.mm.ram, 1, ROM_SIZE, file);
 	fread(&invaders.shift_amount, 1, 1, file);
 	fread(&invaders.shift_reg, 1, 2, file);
 	fread(&invaders.io_output, 1, 2, file);
