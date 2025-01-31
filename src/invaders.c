@@ -161,7 +161,6 @@ void invaders_destroy() {
 }
 void invaders_reset() {
 	i8080_reset(&cpu);
-	emu.single_step_count = 0;
 	invaders.shift_amount = 0;
 	invaders.shift_reg = 0;
 }
@@ -170,7 +169,6 @@ static void cpu_step(int steps) {
 	int c = 0;
 	while (!cpu.flags.halt && c < steps) {
 		++c;
-		++emu.single_step_count;
 		if (i8080_execute(&cpu) != 0) {
 			break;
 		}
@@ -188,7 +186,7 @@ void invaders_update() {
 
 	if (cpu.flags.halt)
 		return;
-
+	
 	if (emu.single_step == SINGLE_STEP_NONE) {
 		cpu_tick(HALF_VBLANK);
 		interrupt(1);

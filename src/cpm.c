@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <malloc.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "file.h"
 #include "emulator.h"
@@ -22,8 +23,10 @@ typedef struct {
 static CPM* cpm;
 extern I8080 cpu;
 extern I8080_MNEM mnem;
+static int failed = 0;
 
-static void log() {
+static void cpu_log() {
+	if (failed) return;
 	cpu_mnem(&mnem, cpu.pc);
 	printf("PC: %04X, AF: %02X%02X, BC: %02X%02X, DE: %02X%02X, HL: %02X%02X, SP: %04X, CYC: %d    (%02X %02X %02X %02X) %s\n", 
 		cpu.pc,
@@ -46,8 +49,7 @@ static void cpu_step(int steps) {
 		int c = 0;
 		while (!cpu.flags.halt && c < steps) {
 			++c;
-			++emu.single_step_count;
-			log();
+			cpu_log();
 			if (i8080_execute(&cpu) != 0) {
 				break;
 			}
@@ -55,12 +57,8 @@ static void cpu_step(int steps) {
 	}
 }
 static void cpu_tick() {
-	//while (!cpu.flags.halt) {
-		log();
-		if (i8080_execute(&cpu) != 0) {
-			//break;
-		}
-	//}
+	cpu_log();
+	i8080_execute(&cpu);
 }
 
 static int load_rom(const char* test) {
@@ -91,17 +89,19 @@ void cpm_write_io(uint8_t port, uint8_t value) {
 
 				case 0x09: { // output string from DE to char $
 					uint16_t address = (cpu.registers[REG_D] << 8) | cpu.registers[REG_E];
-					uint8_t b = cpu.read_byte(address);
+					uint16_t i = address;
+					uint8_t b = cpu.read_byte(i);
 					while (b != '$') {
 						printf("%c", b);
-						b = cpu.read_byte(++address);
+						b = cpu.read_byte(++i);
 					}
-					printf("\n");
+					if (memcmp("\xd\xa CPU HAS FAILED!    ERROR EXIT=", cpm->memory + address, i - address) == 0) {
+						failed = 1;					
+					}
 				} break;
 
 				case 0x02: // output char from E
 					printf("%c", cpu.registers[REG_E]);
-					printf("\n");
 					break;
 			}
 			break; /* OUTPUT_RESULT */
@@ -114,7 +114,7 @@ void cpm_write_io(uint8_t port, uint8_t value) {
 
 void cpm_reset() {
 	i8080_reset(&cpu);
-	emu.single_step_count = 0;
+	failed = 0;
 	cpu.pc = 0x100;
 }
 void cpm_update() {
@@ -157,7 +157,7 @@ int cpm_init() {
 	cpm->memory[0x0007] = 0xC9; /* RET */
 
 	cpm_reset();
-	if (load_rom("TST8080.COM") != 0) {
+	if (load_rom("CPUTEST.COM") != 0) {
 		return 1;
 	}
 

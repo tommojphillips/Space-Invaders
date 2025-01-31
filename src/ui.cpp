@@ -63,7 +63,7 @@ int step = 1;
 int follow_next_instruction = 1;
 
 static void menu_window();
-static void debug_window(); 
+static void debug_window();
 static void decode_window();
 static void stack_window();
 static void hl_window();
@@ -175,7 +175,7 @@ static void set_default_settings() {
 	ui_state.window_scale = 1.0f;
 
 	ui_state.show_menu_window = 0;
-	ui_state.show_debug_window = 1;
+	ui_state.show_debug_window = 0;
 	ui_state.show_dip_switch_window = 1;
 
 	ui_state.show_ram_window = 0;
@@ -254,10 +254,6 @@ static void de_window() {
 }
 static void dip_switch_window() {
 
-	//dip_switch((uint8_t*)&invaders.io_input.input1, 31, "Input-1");
-	//Separator();
-	//dip_switch((uint8_t*)&invaders.io_input.input2, 63, "Input-2");
-
 	bool tmp = !invaders.io_input.input2.extra_ship;
 	if (Checkbox("Extra ship at 1500", &tmp)) {
 		invaders.io_input.input2.extra_ship = !tmp;
@@ -306,8 +302,7 @@ static void debug_window() {
 		if (Button(">>>")) {
 			emu.single_step = SINGLE_STEPPING;
 		}
-
-		Separator();
+		SameLine();
 		PushItemWidth(GetFontSize() * 6);
 		Text("Step: %06d", emu.single_step_increment);
 		SameLine();
@@ -334,8 +329,6 @@ static void debug_window() {
 			}
 		}
 		PopItemWidth();
-
-		Text("Step Count: %d", emu.single_step_count);
 	}
 	else {
 		if (Button("||")) {
@@ -394,6 +387,10 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 		ui_state.show_debug_window ^= 1;
 	}	
 	SameLine();
+	if (Button("Decode")) {
+		ui_state.show_decode_window ^= 1;
+	}
+	SameLine();
 	if (Button("RAM")) {
 		imgui.ram_editor->Open ^= 1;
 	}
@@ -402,12 +399,8 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 		imgui.rom_editor->Open ^= 1;
 	}
 	SameLine();
-	if (Button("VIDEO")) {
+	if (Button("Video")) {
 		imgui.video_editor->Open ^= 1;
-	}
-	SameLine();
-	if (Button("DECODE")) {
-		ui_state.show_decode_window ^= 1;
 	}
 	SameLine();
 	if (Button("HL")) {
@@ -418,11 +411,11 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 		ui_state.show_de_window ^= 1;
 	}
 	SameLine();
-	if (Button("STACK")) {
+	if (Button("SP")) {
 		ui_state.show_stack_window ^= 1;
 	}
 	Separator();
-	if (Button("DIP SW")) {
+	if (Button("Dip Switches")) {
 		ui_state.show_dip_switch_window ^= 1;
 	}
 	Separator();

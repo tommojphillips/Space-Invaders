@@ -50,11 +50,6 @@
 #define VFLAG_SUB(a, b, r, m) VFLAG_ADD((r), (b), (a), (m))
 #define CFLAG_SUB(a, b, r, m) CFLAG_ADD((r), (b), (a), (m))
 
-#define SET_ZSP(x) \
-	ZF = ((x) == 0); \
-	SF = (((x) & 0x80) != 0); \
-	PF = cal_parity_8bit((x) & 0xFF);
-
 static uint8_t cal_parity_8bit(uint8_t value) {
 	value ^= value >> 4;
 	value ^= value >> 2;
@@ -75,28 +70,38 @@ static uint8_t cal_carry_over(uint8_t bits, uint8_t x1, uint8_t x2, uint8_t c) {
 static void alu_and(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint8_t tmp = (*x1 & x2);
 	AF = ((*x1 | x2) & 0x08) != 0;
-	CF = 0;
-	SET_ZSP(tmp);
+	CF = 0;	
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
 	*x1 = tmp;
 }
 static void alu_xor(I8080* cpu, uint8_t* x1, uint8_t x2) {
-	*x1 ^= x2;
+	uint8_t tmp = (*x1 ^ x2);
 	AF = 0;
 	CF = 0;
-	SET_ZSP(*x1);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
+	*x1 = tmp;
 }
 static void alu_or(I8080* cpu, uint8_t* x1, uint8_t x2) {
-	*x1 |= x2;
+	uint8_t tmp = (*x1 | x2);
 	AF = 0;
 	CF = 0;
-	SET_ZSP(*x1);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
+	*x1 = tmp;
 }
 
 static void alu_add(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 + x2);
 	AF = CFLAG_ADD(*x1, x2, tmp, 0x08);
 	CF = CFLAG_ADD(*x1, x2, tmp, 0x80);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp & 0xFF);
 	*x1 = (tmp & 0xFF);
 }
 static void alu_adc(I8080* cpu, uint8_t* x1, uint8_t x2) {
@@ -104,7 +109,9 @@ static void alu_adc(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 + x2 + carry);
 	AF = CFLAG_ADD(*x1, x2+carry, tmp, 0x08);
 	CF = CFLAG_ADD(*x1, x2+carry, tmp, 0x80);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp & 0xFF);
 	*x1 = (tmp & 0xFF);
 }
 
@@ -112,7 +119,9 @@ static void alu_sub(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 - x2);
 	AF = CFLAG_SUB(*x1, x2, tmp, 0x08);
 	CF = CFLAG_SUB(*x1, x2, tmp, 0x80);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp & 0xFF);
 	*x1 = tmp & 0xFF;
 }
 static void alu_sbb(I8080* cpu, uint8_t* x1, uint8_t x2) {
@@ -120,14 +129,18 @@ static void alu_sbb(I8080* cpu, uint8_t* x1, uint8_t x2) {
 	uint16_t tmp = (*x1 - x2 - carry);
 	AF = CFLAG_SUB(*x1, x2-carry, tmp, 0x08);
 	CF = CFLAG_SUB(*x1, x2-carry, tmp, 0x80);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp & 0xFF);
 	*x1 = tmp & 0xFF;
 }
 static void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2) {
 	uint16_t tmp = (x1 - x2);
 	AF = CFLAG_SUB(x1, x2, tmp, 0x08);
 	CF = CFLAG_SUB(x1, x2, tmp, 0x80);
-	SET_ZSP(tmp);	
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp & 0xFF);
 }
 
 void push_byte(I8080* cpu, uint8_t value) {
@@ -702,7 +715,9 @@ void INR_R(I8080* cpu) {
 	/* Increment r */
 	uint8_t tmp = cpu->registers[DDD] + 1;
 	AF = (tmp & 0xF) == 0;
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
 	cpu->registers[DDD] = tmp;
 	PC += 1;
 	CYCLES(5);
@@ -711,7 +726,9 @@ void DCR_R(I8080* cpu) {
 	/* Decrement r */
 	uint8_t tmp = cpu->registers[DDD] - 1;
 	AF = !((tmp & 0xF) == 0xF);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
 	cpu->registers[DDD] = tmp;
 	PC += 1;
 	CYCLES(5);
@@ -722,7 +739,9 @@ void INR_M(I8080* cpu) {
 	uint16_t address = (H << 8) | L;
 	uint8_t tmp = READ_BYTE(address) + 1;
 	AF = (tmp & 0xF) == 0;
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
 	WRITE_BYTE(address, tmp);
 	PC += 1; 
 	CYCLES(10);
@@ -732,7 +751,9 @@ void DCR_M(I8080* cpu) {
 	uint16_t address = (H << 8) | L;
 	uint8_t tmp = READ_BYTE(address) - 1;
 	AF = !((tmp & 0xF) == 0xF);
-	SET_ZSP(tmp);
+	ZF = (tmp == 0);
+	SF = ((tmp & 0x80) != 0);
+	PF = cal_parity_8bit(tmp);
 	WRITE_BYTE(address, tmp);
 	PC += 1;
 	CYCLES(10);

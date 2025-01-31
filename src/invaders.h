@@ -33,14 +33,14 @@ typedef struct {
 } PORT1;
 
 typedef struct {
-	uint8_t ship1 : 1;
-	uint8_t ship2 : 1;
+	uint8_t ship1 : 1; // 00 = 3 ships  10 = 5 ships
+	uint8_t ship2 : 1; // 01 = 4 ships  11 = 6 ships
 	uint8_t tilt : 1;
-	uint8_t undefined_1 : 1;
+	uint8_t extra_ship : 1; // 0 = extra ship at 1500, 1 = extra ship at 1000
 	uint8_t player_fire : 1;
 	uint8_t player_left : 1;
 	uint8_t player_right : 1;
-	uint8_t coin_info : 1;
+	uint8_t coin_info : 1; //  Coin info displayed in demo screen 0=ON
 } PORT2;
 
 typedef struct {	

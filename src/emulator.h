@@ -3,6 +3,7 @@
  */
 
 #include <stdint.h>
+#include "i8080.h"
 
 #ifndef EMULATOR_H
 #define EMULATOR_H
@@ -21,7 +22,6 @@ typedef struct _EMULATOR {
 
 	int single_step;
 	int single_step_increment;
-	int single_step_count;
 } EMULATOR;
 
 #ifdef __cplusplus
@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 extern EMULATOR emu;
+extern I8080 cpu;
 
 #ifdef __cplusplus
 };

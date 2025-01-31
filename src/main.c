@@ -13,8 +13,6 @@
 #include "ui.h"
 #include "emulator.h"
 
-I8080 cpu = { 0 };
-
 //#define CPM
 
 static uint64_t start_frame_time;
@@ -33,7 +31,6 @@ int main(int argc, char** argv) {
 
 	//emu.single_step = SINGLE_STEP_AWAIT;
 	emu.single_step = SINGLE_STEP_NONE;
-	emu.single_step_count = 0;
 	emu.single_step_increment = 1;
 
 #ifdef CPM

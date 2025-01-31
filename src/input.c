@@ -116,9 +116,5 @@ static void game_input(uint8_t v) {
 		case SDLK_u: /* kill space ship */
 			invaders.mm.ram[0x85] = 1;
 			break;
-		case SDLK_j: /* adjust high score */
-			invaders.mm.ram[0xF1] = 1;
-			*(uint16_t*)(invaders.mm.ram + 0xF4) = 0x9999;
-			break;
 	}	
 }
