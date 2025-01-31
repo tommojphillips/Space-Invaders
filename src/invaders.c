@@ -11,7 +11,6 @@
 #include "invaders.h"
 #include "emulator.h"
 #include "i8080.h"
-#include "i8080_mnem.h"
 
 #define ROM_SIZE   0x2000
 #define RAM_SIZE   0x0400
@@ -183,7 +182,7 @@ void invaders_save_state() {
 	if (file == NULL) {
 		return;
 	}
-	fwrite(invaders.mm.ram, 1, 0x2000, file);
+	fwrite(invaders.mm.ram, 1, ROM_SIZE, file);
 	fwrite(&invaders.shift_amount, 1, 1, file);
 	fwrite(&invaders.shift_reg, 1, 2, file);
 	fwrite(&invaders.io_output, 1, 2, file);
@@ -197,7 +196,7 @@ void invaders_load_state() {
 		return;
 	}
 
-	fread(invaders.mm.ram, 1, 0x2000, file);
+	fread(invaders.mm.ram, 1, ROM_SIZE, file);
 	fread(&invaders.shift_amount, 1, 1, file);
 	fread(&invaders.shift_reg, 1, 2, file);
 	fread(&invaders.io_output, 1, 2, file);

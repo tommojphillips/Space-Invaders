@@ -62,10 +62,10 @@ uint8_t lrescue_read_byte(uint16_t address) {
 }
 void lrescue_write_byte(uint16_t address, uint8_t value) {
 	if (address < 0x2000) {
-		*(uint8_t*)(invaders.mm.rom + address) = value;
+		//*(uint8_t*)(invaders.mm.rom + address) = value;
 	}
 	else if (address > 0x4000) {
-		*(uint8_t*)(invaders.mm.rom + 0x2000 + (address & 0x1FFF)) = value;
+		//*(uint8_t*)(invaders.mm.rom + 0x2000 + (address & 0x1FFF)) = value;
 	}
 	else {
 		*(uint8_t*)(invaders.mm.ram + (address & 0x1FFF)) = value;
@@ -188,7 +188,7 @@ void lrescue_save_state() {
 	if (file == NULL) {
 		return;
 	}
-	fwrite(invaders.mm.ram, 1, 0x4000, file);
+	fwrite(invaders.mm.ram, 1, ROM_SIZE, file);
 	fwrite(&invaders.shift_amount, 1, 1, file);
 	fwrite(&invaders.shift_reg, 1, 2, file);
 	fwrite(&invaders.io_output, 1, 2, file);
@@ -202,7 +202,7 @@ void lrescue_load_state() {
 		return;
 	}
 
-	fread(invaders.mm.ram, 1, 0x4000, file);
+	fread(invaders.mm.ram, 1, ROM_SIZE, file);
 	fread(&invaders.shift_amount, 1, 1, file);
 	fread(&invaders.shift_reg, 1, 2, file);
 	fread(&invaders.io_output, 1, 2, file);

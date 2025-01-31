@@ -9,6 +9,7 @@
 #include "invaders.h"
 #include "lrescue.h"
 #include "ballbomb.h"
+#include "invaderspt2.h"
 #include "cpm.h"
 
 #include "window_sdl2.h"
@@ -18,6 +19,7 @@
 //#define CPM
 //#define LRESCUE
 //#define BALLBOMBER
+//#define INVADERS_PT2
 
 static uint64_t start_frame_time;
 static float delta_time; 
@@ -64,6 +66,15 @@ int main(int argc, char** argv) {
 	emu.save_state = ballbomb_save_state;
 	emu.load_state = ballbomb_load_state;
 #else
+#ifdef INVADERS_PT2
+	emu.reset = invaderspt2_reset;
+	emu.update = invaderspt2_update;
+	emu.init = invaderspt2_init;
+	emu.destroy = invaderspt2_destroy;
+	emu.vblank = invaderspt2_vblank;
+	emu.save_state = invaderspt2_save_state;
+	emu.load_state = invaderspt2_load_state;
+#else
 	emu.reset = invaders_reset;
 	emu.update = invaders_update;
 	emu.init = invaders_init;
@@ -71,6 +82,7 @@ int main(int argc, char** argv) {
 	emu.vblank = invaders_vblank;
 	emu.save_state = invaders_save_state;
 	emu.load_state = invaders_load_state;
+#endif
 #endif
 #endif
 #endif
