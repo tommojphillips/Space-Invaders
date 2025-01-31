@@ -73,6 +73,8 @@ void invaders_destroy();
 void invaders_reset();
 void invaders_update();
 void invaders_vblank();
+void invaders_save_state();
+void invaders_load_state();
 
 #ifdef __cplusplus
 };

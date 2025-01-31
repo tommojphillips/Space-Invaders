@@ -19,6 +19,8 @@ typedef struct _EMULATOR {
 	void(*reset)();
 	void(*update)();
 	void(*vblank)();
+	void(*save_state)();
+	void(*load_state)();
 
 	int single_step;
 	int single_step_increment;
@@ -30,6 +32,9 @@ extern "C" {
 
 extern EMULATOR emu;
 extern I8080 cpu;
+
+void emulator_step(int steps);
+void emulator_tick(uint32_t cycles);
 
 #ifdef __cplusplus
 };

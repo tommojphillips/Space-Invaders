@@ -90,11 +90,13 @@
     <ClCompile Include="..\lib\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\lib\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\lib\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\src\ballbomb.c" />
     <ClCompile Include="..\src\cpm.c" />
     <ClCompile Include="..\src\display.c" />
     <ClCompile Include="..\src\emulator.c" />
     <ClCompile Include="..\src\file.c" />
     <ClCompile Include="..\src\input.c" />
+    <ClCompile Include="..\src\lrescue.c" />
     <ClCompile Include="..\src\ui.cpp" />
     <ClCompile Include="..\src\window_sdl2.c" />
     <ClCompile Include="..\src\invaders.c" />
@@ -103,9 +105,11 @@
   <ItemGroup>
     <ClInclude Include="..\lib\i8080\i8080.h" />
     <ClInclude Include="..\lib\i8080\i8080_mnem.h" />
+    <ClInclude Include="..\src\ballbomb.h" />
     <ClInclude Include="..\src\cpm.h" />
     <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\file.h" />
+    <ClInclude Include="..\src\lrescue.h" />
     <ClInclude Include="..\src\ui.h" />
     <ClInclude Include="..\src\window_sdl2.h" />
     <ClInclude Include="..\src\invaders.h" />
