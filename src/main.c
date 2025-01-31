@@ -16,7 +16,7 @@
 #include "emulator.h"
 
 //#define CPM
-#define LRESCUE
+//#define LRESCUE
 //#define BALLBOMBER
 
 static uint64_t start_frame_time;
