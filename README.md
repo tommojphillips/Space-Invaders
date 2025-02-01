@@ -4,7 +4,7 @@ An Emulator for The Original 1978 Space Invaders Arcade Machine. Designed for Wi
 
 Space Invaders: ( invaders.zip )
 
-![ezgif com-optimize](https://github.com/user-attachments/assets/360944e5-5b22-4da8-905c-9fee163ca034)
+![invaders](https://github.com/user-attachments/assets/360944e5-5b22-4da8-905c-9fee163ca034)
 
 Lunar Rescue: ( lrescue.zip )
 
