@@ -83,12 +83,12 @@ void ballbomb_write_io(uint8_t port, uint8_t value) {
 }
 
 static int ballbomb_load_rom() {
-	if (taito8080_read_rom("tn01",   0x0000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("tn02",   0x0800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("tn03",   0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("tn04",   0x1800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("tn05-1", 0x2000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("tn06",   0x2800, 0x400) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn01",   0x0000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn02",   0x0800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn03",   0x1000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn04",   0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn05-1", 0x2000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn06",   0x2800, 0x400) != 0) return 1;
 	return 0;
 }
 int ballbomb_init() {

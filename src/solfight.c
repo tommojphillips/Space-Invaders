@@ -79,12 +79,12 @@ void solfight_write_io(uint8_t port, uint8_t value) {
 }
 
 static int solfight_load_rom() {
-	if (taito8080_read_rom("mw01", 0x0000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("mw02", 0x0800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("mw03", 0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("mw04", 0x1800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("mw05", 0x2000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("mw06", 0x2800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw01", 0x0000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw02", 0x0800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw03", 0x1000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw04", 0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw05", 0x2000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ozmawars/mw06", 0x2800, 0x800) != 0) return 1;
 	return 0;
 }
 int solfight_init() {

@@ -79,12 +79,12 @@ void lrescue_write_io(uint8_t port, uint8_t value) {
 }
 
 static int lrescue_load_rom() {
-	if (taito8080_read_rom("lrescue.1", 0x0000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("lrescue.2", 0x0800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("lrescue.3", 0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("lrescue.4", 0x1800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("lrescue.5", 0x2000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("lrescue.6", 0x2800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.1", 0x0000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.2", 0x0800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.3", 0x1000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.4", 0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.5", 0x2000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("lrescue/lrescue.6", 0x2800, 0x800) != 0) return 1;
 	return 0;
 }
 int lrescue_init() {

@@ -82,12 +82,12 @@ void galxwars_write_io(uint8_t port, uint8_t value) {
 }
 
 static int galxwars_load_rom() {
-	if (taito8080_read_rom("univgw3.0", 0x0000, 0x400) != 0) return 1;
-	if (taito8080_read_rom("univgw4.1", 0x0400, 0x400) != 0) return 1;
-	if (taito8080_read_rom("univgw5.2", 0x0800, 0x400) != 0) return 1;
-	if (taito8080_read_rom("univgw6.3", 0x0C00, 0x400) != 0) return 1;
-	if (taito8080_read_rom("univgw1.4", 0x2000, 0x400) != 0) return 1;
-	if (taito8080_read_rom("univgw2.5", 0x2400, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw3.0", 0x0000, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw4.1", 0x0400, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw5.2", 0x0800, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw6.3", 0x0C00, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw1.4", 0x2000, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw2.5", 0x2400, 0x400) != 0) return 1;
 	return 0;
 }
 int galxwars_init() {

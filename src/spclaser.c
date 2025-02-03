@@ -57,10 +57,10 @@ void spclaser_write_io(uint8_t port, uint8_t value) {
 }
 
 static int spclaser_load_rom() {
-	if (taito8080_read_rom("la01", 0x0000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("la02", 0x0800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("la03", 0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("la04", 0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("spclaser/la01", 0x0000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("spclaser/la02", 0x0800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("spclaser/la03", 0x1000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("spclaser/la04", 0x1800, 0x800) != 0) return 1;
 	return 0;
 }
 int spclaser_init() {

@@ -78,10 +78,10 @@ void invaders_write_io(uint8_t port, uint8_t value) {
 }
 
 static int invaders_load_rom() {
-	if (taito8080_read_rom("invaders.h", 0x0000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("invaders.g", 0x0800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("invaders.f", 0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("invaders.e", 0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invaders/invaders.h", 0x0000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invaders/invaders.g", 0x0800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invaders/invaders.f", 0x1000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invaders/invaders.e", 0x1800, 0x800) != 0) return 1;
 	return 0;
 }
 int invaders_init() {
