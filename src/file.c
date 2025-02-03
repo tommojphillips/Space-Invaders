@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-int read_file_into_buffer(const char* filename, void* buff, const uint32_t expected_size) {
+int read_file_into_buffer(const char* filename, void* buff, const uint32_t buff_size, const uint32_t offset, const uint32_t expected_size) {
 	FILE* file = NULL;
 	uint32_t size = 0;
 	if (filename == NULL)
@@ -26,7 +26,13 @@ int read_file_into_buffer(const char* filename, void* buff, const uint32_t expec
 		return 1;
 	}
 
-	fread(buff, 1, size, file);
+	if (offset + size > buff_size) {
+		printf("Error: file is too big for buffer. Offset: %x. File size: %u bytes. Buffer size: %u bytes\n", offset, size, buff_size);
+		fclose(file);
+		return 1;
+	}
+
+	fread((uint8_t*)buff + offset, 1, size, file);
 	fclose(file);
 	printf("Loaded %s\n", filename);
 	return 0;

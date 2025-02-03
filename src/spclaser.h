@@ -1,14 +1,12 @@
-/* invaders.h
+/* spclaser.h
  * Github: https:\\github.com\tommojphillips
  */
-
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int invaders_init();
+int spclaser_init();
 
 #ifdef __cplusplus
 };

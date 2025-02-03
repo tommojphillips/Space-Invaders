@@ -3,76 +3,125 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "file.h"
-#include "emulator.h"
+#include "taito8080.h"
+#include "cpm.h"
 #include "i8080.h"
 #include "i8080_mnem.h"
 
+#include "emulator.h"
+
 #define REFRESH_RATE 60
-#define CPU_CLOCK 2000000
+//#define CPU_CLOCK 2000000 /* 2 Mhz */
+#define CPU_CLOCK 10000000//2000000 /* 10 Mhz */
 #define VBLANK_RATE (CPU_CLOCK / REFRESH_RATE)
 
-typedef struct {
-	uint8_t memory[0x10000]; /* 64 K */
-} CPM;
-
-static CPM* cpm;
-extern I8080 cpu;
+//CPM* cpm = { 0 };
 extern I8080_MNEM mnem;
-static int failed = 0;
+
+int cputest_init();
+int tst8080_init();
+int pre8080_init();
+int exer8080_init();
+int ex18080_init();
+
+const ROMSET cpm_tests[] = {
+	{ 0, "CPUTEST.COM", cputest_init },
+	{ 1, "TST8080.COM", tst8080_init },
+	{ 2, "8080PRE.COM", pre8080_init },
+	{ 3, "8080EXER.COM", exer8080_init },
+	{ 4, "8080EX1.COM", ex18080_init },
+};
+
+void inject_cpm_signals() {
+
+	// inject "out 0,a" at 0x0000 (signal to stop the test)
+	taito8080.mm.rom[0x0000] = 0xD3; /* OUT opcode */
+	taito8080.mm.rom[0x0001] = 0x00; /* PORT 0 */
+
+	// inject "out 1,a" at 0x0005 (signal to output some characters)
+	taito8080.mm.rom[0x0005] = 0xD3; /* OUT opcode */
+	taito8080.mm.rom[0x0006] = 0x01; /* PORT 1 */
+	taito8080.mm.rom[0x0007] = 0xC9; /* RET */
+}
+
+int cputest_init() {
+	if (read_file_into_buffer("CPUTEST.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	return 0;
+}
+int tst8080_init() {
+	if (read_file_into_buffer("TST8080.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	return 0;
+}
+int pre8080_init() {
+	if (read_file_into_buffer("8080PRE.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	return 0;
+}
+int exer8080_init() {
+	if (read_file_into_buffer("8080EXER.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	return 0;
+}
+int ex18080_init() {
+	if (read_file_into_buffer("8080EX1.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	return 0;
+}
+
+int cpm_load_test(int i) {
+	printf("Loading test: %s\n", cpm_tests[i].name);
+	if (cpm_tests[i].init_romset() != 0) {
+		return 1;
+	}
+	emu.romset_index = i;
+	return 0;
+}
 
 static void cpu_log() {
-	if (failed) return;
-	cpu_mnem(&mnem, cpu.pc);
+	cpu_mnem(&mnem, taito8080.cpu.pc);
 	printf("PC: %04X, AF: %02X%02X, BC: %02X%02X, DE: %02X%02X, HL: %02X%02X, SP: %04X, CYC: %d    (%02X %02X %02X %02X) %s\n", 
-		cpu.pc,
-		cpu.registers[REG_A], cpu.registers[REG_FLAGS],
-		cpu.registers[REG_B], cpu.registers[REG_C],
-		cpu.registers[REG_D], cpu.registers[REG_E],
-		cpu.registers[REG_H], cpu.registers[REG_L], 
-		cpu.sp, 
-		cpu.cycles,
-		cpu.read_byte(cpu.pc+0),
-		cpu.read_byte(cpu.pc+1),
-		cpu.read_byte(cpu.pc+2),
-		cpu.read_byte(cpu.pc+3),
+		taito8080.cpu.pc,
+		taito8080.cpu.registers[REG_A], taito8080.cpu.registers[REG_FLAGS],
+		taito8080.cpu.registers[REG_B], taito8080.cpu.registers[REG_C],
+		taito8080.cpu.registers[REG_D], taito8080.cpu.registers[REG_E],
+		taito8080.cpu.registers[REG_H], taito8080.cpu.registers[REG_L],
+		taito8080.cpu.sp,
+		taito8080.cpu.cycles,
+		taito8080.cpu.read_byte(taito8080.cpu.pc+0),
+		taito8080.cpu.read_byte(taito8080.cpu.pc+1),
+		taito8080.cpu.read_byte(taito8080.cpu.pc+2),
+		taito8080.cpu.read_byte(taito8080.cpu.pc+3),
 		mnem.str);
+}
+
+static cpm_execute() {
+	//cpu_log();
+	i8080_execute(&taito8080.cpu);
 }
 
 static void cpu_step(int steps) {
 	if (emu.single_step == SINGLE_STEPPING) {
 		emu.single_step = SINGLE_STEP_AWAIT;
 		int c = 0;
-		while (!cpu.flags.halt && c < steps) {
-			++c;
-			cpu_log();
-			if (i8080_execute(&cpu) != 0) {
-				break;
-			}
+		while (!taito8080.cpu.flags.halt && c < steps) {
+			cpm_execute();
 		}
 	}
 }
-static void cpu_tick() {
-	cpu_log();
-	i8080_execute(&cpu);
-}
-
-static int load_rom(const char* test) {
-	if (read_file_into_buffer(test, cpm->memory + 0x100, 0) != 0) {
-		return 1;
+static void cpu_tick(uint32_t cycles) {
+	while (!taito8080.cpu.flags.halt && taito8080.cpu.cycles < cycles) {
+		cpm_execute();
 	}
-	return 0;
 }
 
 uint8_t cpm_read_byte(uint16_t address) {
-	return *(uint8_t*)(cpm->memory + (address & 0x1FFF));
+	return *(uint8_t*)(taito8080.mm.rom + (address & 0xFFFF));
 }
 void cpm_write_byte(uint16_t address, uint8_t value) {
-	*(uint8_t*)(cpm->memory + (address & 0x1FFF)) = value;
+	*(uint8_t*)(taito8080.mm.rom + (address & 0xFFFF)) = value;
 }
 
 uint8_t cpm_read_io(uint8_t port) {
@@ -81,27 +130,24 @@ uint8_t cpm_read_io(uint8_t port) {
 void cpm_write_io(uint8_t port, uint8_t value) {
 	switch (port) {	
 		case 0x00:
-			cpu.flags.halt = 0b1;
+			taito8080.cpu.flags.halt = 0b1;
+			fprintf(stderr, "\n");
 			break; /* TEST DONE */
 
 		case 0x01:
-			switch (cpu.registers[REG_C]) {
+			switch (taito8080.cpu.registers[REG_C]) {
 
 				case 0x09: { // output string from DE to char $
-					uint16_t address = (cpu.registers[REG_D] << 8) | cpu.registers[REG_E];
-					uint16_t i = address;
-					uint8_t b = cpu.read_byte(i);
+					uint16_t i = (taito8080.cpu.registers[REG_D] << 8) | taito8080.cpu.registers[REG_E];
+					uint8_t b = taito8080.cpu.read_byte(i++);
 					while (b != '$') {
-						printf("%c", b);
-						b = cpu.read_byte(++i);
-					}
-					if (memcmp("\xd\xa CPU HAS FAILED!    ERROR EXIT=", cpm->memory + address, i - address) == 0) {
-						failed = 1;					
+						fprintf(stderr, "%c", b);
+						b = taito8080.cpu.read_byte(i++);
 					}
 				} break;
 
 				case 0x02: // output char from E
-					printf("%c", cpu.registers[REG_E]);
+					fprintf(stderr, "%c", taito8080.cpu.registers[REG_E]);
 					break;
 			}
 			break; /* OUTPUT_RESULT */
@@ -113,17 +159,16 @@ void cpm_write_io(uint8_t port, uint8_t value) {
 }
 
 void cpm_reset() {
-	i8080_reset(&cpu);
-	failed = 0;
-	cpu.pc = 0x100;
+	i8080_reset(&taito8080.cpu);
+	taito8080.cpu.pc = 0x100;
+	fprintf(stderr, "RESET\n");
 }
 void cpm_update() {
 
-	if (cpu.flags.halt)
-		return;
+	if (taito8080.cpu.flags.halt) return;
 
 	if (emu.single_step == SINGLE_STEP_NONE) {		
-		cpu_tick();
+		cpu_tick(VBLANK_RATE);
 	}
 	else {
 		cpu_step(emu.single_step_increment);
@@ -131,41 +176,46 @@ void cpm_update() {
 }
 
 int cpm_init() {
-	cpm = (CPM*)malloc(sizeof(CPM));
-	if (cpm == NULL) {
-		printf("Failed to allocate CPM\n");
+	taito8080.mm.rom = (uint8_t*)malloc(0x10000);
+	if (taito8080.mm.rom == NULL) {
+		printf("Failed to allocate ROM\n");
 		return 1;
-	}	
-
-	i8080_init(&cpu);
-	cpu.read_byte = cpm_read_byte;
-	cpu.write_byte = cpm_write_byte;
-	cpu.read_io = cpm_read_io;
-	cpu.write_io = cpm_write_io;
-
-	for (int i = 0; i < sizeof(cpm->memory); i++) {
-		cpm->memory[i] = 0;
 	}
+	memset(taito8080.mm.rom, 0, 0x10000);
+	taito8080.mm.rom_size = 0x10000;
 
-	// inject "out 0,a" at 0x0000 (signal to stop the test)
-	cpm->memory[0x0000] = 0xD3; /* OUT opcode */
-	cpm->memory[0x0001] = 0x00; /* PORT 0 */
+	taito8080.mm.ram = taito8080.mm.rom;
+	taito8080.mm.ram_size = 0;
+	taito8080.mm.video = NULL;
+	taito8080.mm.video_size = 0;
 
-	// inject "out 1,a" at 0x0005 (signal to output some characters)
-	cpm->memory[0x0005] = 0xD3; /* OUT opcode */
-	cpm->memory[0x0006] = 0x01; /* PORT 1 */
-	cpm->memory[0x0007] = 0xC9; /* RET */
+	i8080_init(&taito8080.cpu);
+	taito8080.cpu.read_byte = cpm_read_byte;
+	taito8080.cpu.write_byte = cpm_write_byte;
+	taito8080.cpu.read_io = cpm_read_io;
+	taito8080.cpu.write_io = cpm_write_io;
+
+	emu.single_step = SINGLE_STEP_NONE;
+	emu.single_step_increment = 1;
 
 	cpm_reset();
-	if (load_rom("CPUTEST.COM") != 0) {
+	inject_cpm_signals();
+
+	if (cpm_load_test(0) != 0) {
 		return 1;
 	}
+
 
 	return 0;
 }
 void cpm_destroy() {
-	if (cpm != NULL) {
-		free(cpm);
-		cpm = NULL;
+	if (taito8080.mm.rom != NULL) {
+		free(taito8080.mm.rom);
+		taito8080.mm.rom = NULL;
+		taito8080.mm.ram = NULL;
 	}
+}
+
+void cpm_vblank() {
+	taito8080.cpu.cycles = 0;
 }

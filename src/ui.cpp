@@ -13,8 +13,9 @@ using namespace ImGui;
 
 #include "i8080.h"
 #include "i8080_mnem.h"
+#include "taito8080.h"
+#include "cpm.h"
 #include "emulator.h"
-#include "invaders.h"
 
 #define renderer_new_frame \
 	ImGui_ImplSDLRenderer2_NewFrame(); \
@@ -75,7 +76,7 @@ static void set_default_settings();
 
 void imgui_init() {
 	set_default_settings();
-	mnem.cpu = &cpu;
+	mnem.cpu = &taito8080.cpu;
 }
 void imgui_create_renderer() {
 
@@ -134,15 +135,15 @@ void imgui_update() {
 	else {
 
 		if (imgui.ram_editor->Open) {
-			imgui.ram_editor->DrawWindow("RAM (1K)", invaders.mm.ram, 1024, 0);
+			imgui.ram_editor->DrawWindow("RAM (1K)", taito8080.mm.ram, 1024, 0);
 		}
 
 		if (imgui.rom_editor->Open) {
-			imgui.rom_editor->DrawWindow("ROM (8K)", invaders.mm.rom, 8 * 1024, 0);
+			imgui.rom_editor->DrawWindow("ROM (8K)", taito8080.mm.rom, 8 * 1024, 0);
 		}
 
 		if (imgui.video_editor->Open) {
-			imgui.video_editor->DrawWindow("VIDEO (7K)", invaders.mm.video, 7 * 1024, 0);
+			imgui.video_editor->DrawWindow("VIDEO (7K)", taito8080.mm.video, 7 * 1024, 0);
 		}
 	}	
 	
@@ -176,7 +177,7 @@ static void set_default_settings() {
 
 	ui_state.show_menu_window = 0;
 	ui_state.show_debug_window = 0;
-	ui_state.show_dip_switch_window = 1;
+	ui_state.show_dip_switch_window = 0;
 
 	ui_state.show_ram_window = 0;
 	ui_state.cols_ram_window = 16;
@@ -196,7 +197,7 @@ static void decode_window() {
 	Checkbox("Follow flow", (bool*)&follow_next_instruction);
 	Separator();
 	BeginChild("Decode");
-	uint16_t pc = cpu.pc;
+	uint16_t pc = taito8080.cpu.pc;
 	for (int i = 0; i < 10; ++i) {
 		cpu_mnem(&mnem, pc);
 		Text("%04X: %s", pc, mnem.str);
@@ -212,10 +213,10 @@ static void stack_window() {
 	Begin("Stack", (bool*)&ui_state.show_stack_window);
 	int k = 0;
 	for (int i = 0; i < 10; ++i) {
-		Text("%04X: ", cpu.sp + k);
+		Text("%04X: ", taito8080.cpu.sp + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", cpu.read_byte(cpu.sp + k));
+			Text("%02X ", taito8080.cpu.read_byte(taito8080.cpu.sp + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -224,13 +225,13 @@ static void stack_window() {
 }
 static void hl_window() {
 	Begin("HL", (bool*)&ui_state.show_hl_window);
-	uint16_t ptr = ((cpu.registers[REG_H] << 8) | cpu.registers[REG_L]);
+	uint16_t ptr = ((taito8080.cpu.registers[REG_H] << 8) | taito8080.cpu.registers[REG_L]);
 	int k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", ptr + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", cpu.read_byte(ptr + k));
+			Text("%02X ", taito8080.cpu.read_byte(ptr + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -239,13 +240,13 @@ static void hl_window() {
 }
 static void de_window() {
 	Begin("DE", (bool*)&ui_state.show_de_window);
-	uint16_t ptr = ((cpu.registers[REG_D] << 8) | cpu.registers[REG_E]);
+	uint16_t ptr = ((taito8080.cpu.registers[REG_D] << 8) | taito8080.cpu.registers[REG_E]);
 	int k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", ptr + k);
 		SameLine();
 		for (int j = 0; j < 4; ++j) {
-			Text("%02X ", cpu.read_byte(ptr + k));
+			Text("%02X ", taito8080.cpu.read_byte(ptr + k));
 			if (j < 3) SameLine();
 			k++;
 		}
@@ -254,14 +255,14 @@ static void de_window() {
 }
 static void dip_switch_window() {
 
-	bool tmp = !invaders.io_input.input2.extra_ship;
+	/*bool tmp = !taito8080.io_input.input2.extra_ship;
 	if (Checkbox("Extra ship at 1500", &tmp)) {
-		invaders.io_input.input2.extra_ship = !tmp;
+		taito8080.io_input.input2.extra_ship = !tmp;
 	}
 	SameLine();
-	tmp = invaders.io_input.input2.extra_ship;
+	tmp = taito8080.io_input.input2.extra_ship;
 	if (Checkbox("Extra ship at 1000", &tmp)) {
-		invaders.io_input.input2.extra_ship = tmp;
+		taito8080.io_input.input2.extra_ship = tmp;
 	}
 
 	static int lives = 3;
@@ -270,26 +271,40 @@ static void dip_switch_window() {
 	if (SliderInt("###Lives", &lives, 3, 6)) {
 		switch (lives) {
 		case 3:
-			invaders.io_input.input2.ship1 = 0;
-			invaders.io_input.input2.ship2 = 0;
+			taito8080.io_input.input2.ship1 = 0;
+			taito8080.io_input.input2.ship2 = 0;
 			break;
 		case 4:
-			invaders.io_input.input2.ship1 = 1;
-			invaders.io_input.input2.ship2 = 0;
+			taito8080.io_input.input2.ship1 = 1;
+			taito8080.io_input.input2.ship2 = 0;
 			break;
 		case 5:
-			invaders.io_input.input2.ship1 = 0;
-			invaders.io_input.input2.ship2 = 1;
+			taito8080.io_input.input2.ship1 = 0;
+			taito8080.io_input.input2.ship2 = 1;
 			break;
 		case 6:
-			invaders.io_input.input2.ship1 = 1;
-			invaders.io_input.input2.ship2 = 1;
+			taito8080.io_input.input2.ship1 = 1;
+			taito8080.io_input.input2.ship2 = 1;
 			break;
 		}
-	}
+	}*/
+
+	dip_switch8(&taito8080.io_output.sound1, 0, "Sound1");
+	
+	Separator();
+	dip_switch8(&taito8080.io_output.sound2, 16, "Sound2");
+	
+	Separator();
+	dip_switch8(&taito8080.io_output.sound3, 32, "Sound3");
+	
+	Separator();
+	dip_switch8(&taito8080.io_input.input0, 48, "Input0");
 
 	Separator();
-	dip_switch16((uint16_t*)&invaders.io_output.sound1, 127, "Sound");
+	dip_switch8((uint8_t*)&taito8080.io_input.input1, 64, "Input1");
+
+	Separator();
+	dip_switch8((uint8_t*)&taito8080.io_input.input2, 96, "Input2");
 }
 static void debug_window() {
 	Begin("Debug", (bool*)&ui_state.show_debug_window);
@@ -337,45 +352,45 @@ static void debug_window() {
 	}
 
 	Separator();
-	Text("PC: %04X", cpu.pc);
+	Text("PC: %04X", taito8080.cpu.pc);
 
 	Separator();
-	Text("SP: %04X", cpu.sp);
+	Text("SP: %04X", taito8080.cpu.sp);
 
 	Separator();
-	Text("BC: %02X%02X", cpu.registers[REG_B], cpu.registers[REG_C]);
+	Text("BC: %02X%02X", taito8080.cpu.registers[REG_B], taito8080.cpu.registers[REG_C]);
 
 	Separator();
-	Text("DE: %02X%02X", cpu.registers[REG_D], cpu.registers[REG_E]);
+	Text("DE: %02X%02X", taito8080.cpu.registers[REG_D], taito8080.cpu.registers[REG_E]);
 
 	Separator();
-	Text("HL: %02X%02X", cpu.registers[REG_H], cpu.registers[REG_L]);
+	Text("HL: %02X%02X", taito8080.cpu.registers[REG_H], taito8080.cpu.registers[REG_L]);
 
 	Separator();
-	Text("A: %02X", cpu.registers[REG_A]);
+	Text("A: %02X", taito8080.cpu.registers[REG_A]);
 
 	Separator();
-	Text("PSW: %02X%02X", cpu.registers[REG_A], cpu.registers[REG_FLAGS]);
+	Text("PSW: %02X%02X", taito8080.cpu.registers[REG_A], taito8080.cpu.registers[REG_FLAGS]);
 	
 	Separator();
-	Text("SF: %01X ", cpu.status_flags->s);
+	Text("SF: %01X ", taito8080.cpu.status_flags->s);
 	SameLine();
-	Text("ZF: %01X ", cpu.status_flags->z);
-	Text("PF: %01X ", cpu.status_flags->p);
+	Text("ZF: %01X ", taito8080.cpu.status_flags->z);
+	Text("PF: %01X ", taito8080.cpu.status_flags->p);
 	SameLine();
-	Text("CF: %01X ", cpu.status_flags->c);
-	Text("AF: %01X ", cpu.status_flags->h);
+	Text("CF: %01X ", taito8080.cpu.status_flags->c);
+	Text("AF: %01X ", taito8080.cpu.status_flags->h);
 
 	Separator();	
-	Text("INT: %01X ", cpu.flags.interrupt);
+	Text("INT: %01X ", taito8080.cpu.flags.interrupt);
 	SameLine();
-	Text("HALT: %01X ", cpu.flags.halt);
+	Text("HALT: %01X ", taito8080.cpu.flags.halt);
 
 	Separator();	
-	Text("Shift16: %04X", invaders.shift_reg);
+	Text("Shift16: %04X", taito8080.shift_reg);
 	
 	Separator();
-	Text("Cycles: %d", cpu.cycles);
+	Text("Cycles: %d", taito8080.cpu.cycles);
 
 	End();
 }
@@ -422,6 +437,27 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 
 	if (ui_state.show_dip_switch_window) {
 		dip_switch_window();
+	}
+	else {
+		if (BeginCombo("###rom_set", emu.machine->romsets[emu.romset_index].name)) {
+			for (int i = 0; i < emu.machine->romset_count; ++i) {
+				if (Selectable(emu.machine->romsets[i].name)) {
+					if (emu.machine->load_romset(i) == 0) {
+						emu.machine->reset();
+					}
+					else {
+						emu.machine->load_romset(emu.romset_index); /*reload roms/reconfig for current system.*/
+					}
+				}
+			}
+			EndCombo();
+		}
+
+		Separator();
+
+		if (Button("Reset Machine")) {
+			emu.machine->reset();
+		}
 	}
 
 	End();

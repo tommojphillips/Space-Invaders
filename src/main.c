@@ -4,30 +4,38 @@
 
 #include "stdio.h"
 
-#include "i8080.h"
-#include "i8080_mnem.h"
-#include "invaders.h"
-#include "lrescue.h"
-#include "ballbomb.h"
-#include "invaderspt2.h"
-#include "cpm.h"
-
 #include "window_sdl2.h"
 #include "ui.h"
+#include "i8080.h"
+#include "taito8080.h"
+#include "cpm.h"
+
 #include "emulator.h"
 
-//#define CPM
-//#define LRESCUE
-//#define BALLBOMBER
-//#define INVADERS_PT2
+#define CPM			0
+#define TAITO8080	1
 
-static uint64_t start_frame_time;
-static float delta_time; 
+const MACHINE machines[] = {
+	{ CPM, "CPM i8080",	cpm_init, cpm_destroy,
+	  cpm_reset, cpm_update, cpm_vblank,
+	  NULL, NULL,
+	  cpm_load_test, cpm_tests, 5 },
+	
+	{ TAITO8080, "taito i8080",	taito8080_init, taito8080_destroy,
+	  taito8080_reset, taito8080_update, taito8080_vblank,
+	  taito8080_save_state, taito8080_load_state, 
+	  taito8080_load_romset, taito8080_romsets, 7 },
+};
+
 static float render_elapsed_time;
-void start_frame() {
+static void start_frame() {
+	static uint64_t start_frame_time;
+	static float delta_time;
 	delta_time = (SDL_GetPerformanceCounter() - start_frame_time) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+	render_elapsed_time += delta_time;
 	start_frame_time = SDL_GetPerformanceCounter();
 }
+
 int main(int argc, char** argv) {
 
 	sdl_init();
@@ -35,81 +43,28 @@ int main(int argc, char** argv) {
 	imgui_init();
 	imgui_create_renderer();
 
-	//emu.single_step = SINGLE_STEP_AWAIT;
-	emu.single_step = SINGLE_STEP_NONE;
-	emu.single_step_increment = 1;
-
-#ifdef CPM
-	emu.reset = cpm_reset;
-	emu.update = cpm_update;
-	emu.init = cpm_init;
-	emu.destroy = cpm_destroy;
-	emu.vblank = NULL;
-	emu.save_state = NULL;
-	emu.load_state = NULL;
-#else
-#ifdef LRESCUE
-	emu.reset = lrescue_reset;
-	emu.update = lrescue_update;
-	emu.init = lrescue_init;
-	emu.destroy = lrescue_destroy;
-	emu.vblank = lrescue_vblank;
-	emu.save_state = lrescue_save_state;
-	emu.load_state = lrescue_load_state;
-#else
-#ifdef BALLBOMBER
-	emu.reset = ballbomb_reset;
-	emu.update = ballbomb_update;
-	emu.init = ballbomb_init;
-	emu.destroy = ballbomb_destroy;
-	emu.vblank = ballbomb_vblank;
-	emu.save_state = ballbomb_save_state;
-	emu.load_state = ballbomb_load_state;
-#else
-#ifdef INVADERS_PT2
-	emu.reset = invaderspt2_reset;
-	emu.update = invaderspt2_update;
-	emu.init = invaderspt2_init;
-	emu.destroy = invaderspt2_destroy;
-	emu.vblank = invaderspt2_vblank;
-	emu.save_state = invaderspt2_save_state;
-	emu.load_state = invaderspt2_load_state;
-#else
-	emu.reset = invaders_reset;
-	emu.update = invaders_update;
-	emu.init = invaders_init;
-	emu.destroy = invaders_destroy;
-	emu.vblank = invaders_vblank;
-	emu.save_state = invaders_save_state;
-	emu.load_state = invaders_load_state;
-#endif
-#endif
-#endif
-#endif
-
-	if (emu.init() != 0) {
-		return 1; /* LEAK */
-	}
+	emu.machine = &machines[TAITO8080];
+	//emu.machine = &machines[CPM];
+	emu.machine->init();
 
 	while (window_state->window_open) {
 		start_frame();
 		sdl_update();
 		imgui_update();
 
-		emu.update();
+		emu.machine->update();
 
-		render_elapsed_time += delta_time;
 		if (16.666f < render_elapsed_time) {
 			render_elapsed_time -= 16.666f;
 			sdl_render();
 
-			if (emu.vblank) {
-				emu.vblank();
+			if (emu.machine->vblank) {
+				emu.machine->vblank();
 			}
 		}
 	}
 
-	emu.destroy();
+	emu.machine->destroy();
 	imgui_destroy();
 	sdl_destroy();
 

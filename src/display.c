@@ -2,7 +2,7 @@
 #include "SDL.h"
 
 #include "window_sdl2.h"
-#include "invaders.h"
+#include "taito8080.h"
 
 #define WINDOW_W (window_state->win_w)
 #define WINDOW_H (window_state->win_h)
@@ -46,14 +46,14 @@ void display_process_event() {
 	}
 }
 void display_draw_buffer() {
-	if (invaders.mm.video == NULL) {
+	if (taito8080.mm.video == NULL) {
 		return;
 	}
 
 	int i = 0;
 	for (int x = 0; x < DISPLAY_W; ++x) {
 		for (int y = 0; y < DISPLAY_H; y += 8) {
-			uint8_t byte = invaders.mm.video[i++];
+			uint8_t byte = taito8080.mm.video[i++];
 			for (int n = 0; n < 8; ++n) {
 
 				window_state->px.x = X_CENTER + (x * DISPLAY_PX_SIZE);

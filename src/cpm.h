@@ -3,25 +3,24 @@
  */
 
 #include <stdint.h>
-#include "i8080.h"
+
+#include "emulator.h"
 
 #ifndef CPM_H
 #define CPM_H
-
-typedef struct {
-	uint8_t memory[0x10000]; /* 64 K */
-} CPM;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	extern CPM* cpm;
+	extern const ROMSET cpm_tests[];
 
 	int cpm_init();
 	void cpm_destroy(); 
 	void cpm_reset();
 	void cpm_update();
+	void cpm_vblank();
+	int cpm_load_test(int i);
 	
 #ifdef __cplusplus
 };

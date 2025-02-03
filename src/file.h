@@ -7,6 +7,6 @@
 
 #include <stdint.h>
 
-int read_file_into_buffer(const char* filename, void* buff, const uint32_t expectedSize);
+int read_file_into_buffer(const char* filename, void* buff, const uint32_t buff_size, const uint32_t offset, const uint32_t expected_size);
 
 #endif

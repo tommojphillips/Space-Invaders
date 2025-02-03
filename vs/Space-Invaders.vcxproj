@@ -95,9 +95,13 @@
     <ClCompile Include="..\src\display.c" />
     <ClCompile Include="..\src\emulator.c" />
     <ClCompile Include="..\src\file.c" />
+    <ClCompile Include="..\src\galxwars.c" />
     <ClCompile Include="..\src\input.c" />
     <ClCompile Include="..\src\invaderspt2.c" />
     <ClCompile Include="..\src\lrescue.c" />
+    <ClCompile Include="..\src\solfight.c" />
+    <ClCompile Include="..\src\spclaser.c" />
+    <ClCompile Include="..\src\taito8080.c" />
     <ClCompile Include="..\src\ui.cpp" />
     <ClCompile Include="..\src\window_sdl2.c" />
     <ClCompile Include="..\src\invaders.c" />
@@ -110,8 +114,12 @@
     <ClInclude Include="..\src\cpm.h" />
     <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\file.h" />
+    <ClInclude Include="..\src\galxwars.h" />
     <ClInclude Include="..\src\invaderspt2.h" />
     <ClInclude Include="..\src\lrescue.h" />
+    <ClInclude Include="..\src\solfight.h" />
+    <ClInclude Include="..\src\spclaser.h" />
+    <ClInclude Include="..\src\taito8080.h" />
     <ClInclude Include="..\src\ui.h" />
     <ClInclude Include="..\src\window_sdl2.h" />
     <ClInclude Include="..\src\invaders.h" />

@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include "i8080.h"
 
 #ifndef EMULATOR_H
 #define EMULATOR_H
@@ -13,7 +12,46 @@ enum {
 	SINGLE_STEPPING = 1,
 	SINGLE_STEP_AWAIT = 2,
 };
-typedef struct _EMULATOR {
+
+typedef struct {
+	int id;
+	char name[32];
+	int(*init_romset)();
+} ROMSET;
+
+
+#define MM_FLAG_NONE			0
+#define MM_FLAG_WRITE_PROTECTED 2
+#define MM_FLAG_MIRROR          3
+
+#define MM_TYPE_ROM  			0
+#define MM_TYPE_RAM             1
+#define MM_TYPES                2
+
+typedef struct {
+	uint16_t start;
+	uint16_t offset;
+	uint16_t size;
+	uint8_t flags;
+	uint8_t type;
+} MM;
+
+typedef struct {
+	uint8_t* rom;
+	uint32_t rom_size;
+	uint8_t* ram;
+	uint32_t ram_size;
+	uint8_t* video;
+	uint32_t video_size;
+
+	const MM* const* banks;
+	uint8_t* bank_ptrs[MM_TYPES];
+	int bank_count;
+} MEMORY_MAP;
+
+typedef struct {
+	int id;
+	const char name[32];
 	int(*init)();
 	void(*destroy)();
 	void(*reset)();
@@ -21,7 +59,14 @@ typedef struct _EMULATOR {
 	void(*vblank)();
 	void(*save_state)();
 	void(*load_state)();
+	int(*load_romset)(int index);
+	const ROMSET* romsets;
+	int romset_count;
+} MACHINE;
 
+typedef struct {
+	const MACHINE* machine;
+	int romset_index;
 	int single_step;
 	int single_step_increment;
 } EMULATOR;
@@ -31,10 +76,6 @@ extern "C" {
 #endif
 
 extern EMULATOR emu;
-extern I8080 cpu;
-
-void emulator_step(int steps);
-void emulator_tick(uint32_t cycles);
 
 #ifdef __cplusplus
 };
