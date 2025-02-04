@@ -93,9 +93,9 @@ static void alu_add(I8080* cpu, uint8_t x2) {
 	A = (tmp & 0xFF);
 }
 static void alu_adc(I8080* cpu, uint8_t x2) {
-	uint8_t carry = CF;
-	uint16_t tmp = (A + x2 + carry);
-	AF = (((A & 0x0F) + ((x2 + carry) & 0x0F)) & 0x10) == 0x10 ? 1 : 0;
+	uint16_t x3 = x2 + CF;
+	uint16_t tmp = (A + x3);
+	AF = (((A & 0x0F) + (x3 & 0x0F)) & 0x10) == 0x10 ? 1 : 0;
 	CF = (tmp > 0xFF) ? 1 : 0;
 	SET_ZF(tmp & 0xFF);
 	SET_SF(tmp & 0xFF);
@@ -105,7 +105,7 @@ static void alu_adc(I8080* cpu, uint8_t x2) {
 
 static void alu_sub(I8080* cpu, uint8_t x2) {
 	uint16_t tmp = (A - x2);
-	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;//(A & 0x0F) - (x2 & 0x0F) < 0 ? 1 : 0;
+	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;
 	CF = (A < x2) ? 1 : 0;
 	SET_ZF(tmp & 0xFF);
 	SET_SF(tmp & 0xFF);
@@ -113,10 +113,10 @@ static void alu_sub(I8080* cpu, uint8_t x2) {
 	A = (tmp & 0xFF);
 }
 static void alu_sbb(I8080* cpu, uint8_t x2) {
-	uint8_t carry = CF;
-	uint16_t tmp = (A - x2 - carry);
-	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;//(A & 0x0F) - ((x2 - carry) & 0x0F) < 0 ? 1 : 0;
-	CF = (A < (x2 - carry)) ? 1 : 0;
+	uint8_t x3 = (x2 + CF);
+	uint16_t tmp = (A - x3);
+	AF = (((A ^ x3 ^ tmp) & 0x10) == 0) ? 1 : 0;
+	CF = (A < x3) ? 1 : 0;
 	SET_ZF(tmp & 0xFF);
 	SET_SF(tmp & 0xFF);
 	SET_PF(tmp & 0xFF);
@@ -124,7 +124,7 @@ static void alu_sbb(I8080* cpu, uint8_t x2) {
 }
 static void alu_cmp(I8080* cpu, uint8_t x2) {
 	uint16_t tmp = (A - x2);
-	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;//(A & 0x0F) - (x2 & 0x0F) < 0 ? 1 : 0;
+	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;
 	CF = (A < x2) ? 1 : 0;
 	SET_ZF(tmp & 0xFF);
 	SET_SF(tmp & 0xFF);
@@ -168,11 +168,11 @@ static void jmp(I8080* cpu) {
 
 /* OPCODES */
 
-void CALL(I8080* cpu) {
+static void CALL(I8080* cpu) {
 	call(cpu);
 	CYCLES(17);
 }
-void CC(I8080* cpu) {
+static void CC(I8080* cpu) {
 	if (CF) {
 		call(cpu);
 		CYCLES(17);
@@ -182,7 +182,7 @@ void CC(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CNC(I8080* cpu) {
+static void CNC(I8080* cpu) {
 	if (!CF) {
 		call(cpu);
 		CYCLES(17);
@@ -192,7 +192,7 @@ void CNC(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CZ(I8080* cpu) {
+static void CZ(I8080* cpu) {
 	if (ZF) {
 		call(cpu);
 		CYCLES(17);
@@ -202,7 +202,7 @@ void CZ(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CNZ(I8080* cpu) {
+static void CNZ(I8080* cpu) {
 	if (!ZF) {
 		call(cpu);
 		CYCLES(17);
@@ -212,7 +212,7 @@ void CNZ(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CP(I8080* cpu) {
+static void CP(I8080* cpu) {
 	if (!SF) {
 		call(cpu);
 		CYCLES(17);
@@ -222,7 +222,7 @@ void CP(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CM(I8080* cpu) {
+static void CM(I8080* cpu) {
 	if (SF) {
 		call(cpu);
 		CYCLES(17);
@@ -232,7 +232,7 @@ void CM(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CPE(I8080* cpu) {
+static void CPE(I8080* cpu) {
 	if (PF) {
 		call(cpu);
 		CYCLES(17);
@@ -242,7 +242,7 @@ void CPE(I8080* cpu) {
 		CYCLES(11);
 	}
 }
-void CPO(I8080* cpu) {
+static void CPO(I8080* cpu) {
 	if (!PF) {
 		call(cpu);
 		CYCLES(17);
@@ -253,11 +253,11 @@ void CPO(I8080* cpu) {
 	}
 }
 
-void RET(I8080* cpu) {
+static void RET(I8080* cpu) {
 	ret(cpu);
 	CYCLES(10);
 }
-void RC(I8080* cpu) {
+static void RC(I8080* cpu) {
 	if (CF) {
 		ret(cpu);
 		CYCLES(11);
@@ -267,7 +267,7 @@ void RC(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RNC(I8080* cpu) {
+static void RNC(I8080* cpu) {
 	if (!CF) {
 		ret(cpu);
 		CYCLES(11);
@@ -277,7 +277,7 @@ void RNC(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RZ(I8080* cpu) {
+static void RZ(I8080* cpu) {
 	if (ZF) {
 		ret(cpu);
 		CYCLES(11);
@@ -287,7 +287,7 @@ void RZ(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RNZ(I8080* cpu) {
+static void RNZ(I8080* cpu) {
 	if (!ZF) {
 		ret(cpu);
 		CYCLES(11);
@@ -297,7 +297,7 @@ void RNZ(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RP(I8080* cpu) {
+static void RP(I8080* cpu) {
 	if (!SF) {
 		ret(cpu);
 		CYCLES(11);
@@ -307,7 +307,7 @@ void RP(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RM(I8080* cpu) {
+static void RM(I8080* cpu) {
 	if (SF) {
 		ret(cpu);
 		CYCLES(11);
@@ -317,7 +317,7 @@ void RM(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RPE(I8080* cpu) {
+static void RPE(I8080* cpu) {
 	if (PF) {
 		ret(cpu);
 		CYCLES(11);
@@ -327,7 +327,7 @@ void RPE(I8080* cpu) {
 		CYCLES(5);
 	}
 }
-void RPO(I8080* cpu) {
+static void RPO(I8080* cpu) {
 	if (!PF) {
 		ret(cpu);
 		CYCLES(11);
@@ -338,12 +338,12 @@ void RPO(I8080* cpu) {
 	}
 }
 
-void JMP(I8080* cpu) {
+static void JMP(I8080* cpu) {
 	/* Jump */
 	jmp(cpu);
 	CYCLES(10);
 }
-void JC(I8080* cpu) {
+static void JC(I8080* cpu) {
 	/* Jump carry */
 	if (CF) {
 		jmp(cpu);
@@ -353,7 +353,7 @@ void JC(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JNC(I8080* cpu) {
+static void JNC(I8080* cpu) {
 	/* Jump not carry */
 	if (!CF) {
 		jmp(cpu);
@@ -363,7 +363,7 @@ void JNC(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JZ(I8080* cpu) {
+static void JZ(I8080* cpu) {
 	/* Jump zero */
 	if (ZF) {
 		jmp(cpu);
@@ -373,7 +373,7 @@ void JZ(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JNZ(I8080* cpu) {
+static void JNZ(I8080* cpu) {
 	/* Jump not zero */
 	if (!ZF) {
 		jmp(cpu);
@@ -383,7 +383,7 @@ void JNZ(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JP(I8080* cpu) {
+static void JP(I8080* cpu) {
 	/* Jump positive */
 	if (!SF) {
 		jmp(cpu);
@@ -393,7 +393,7 @@ void JP(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JM(I8080* cpu) {
+static void JM(I8080* cpu) {
 	/* Jump minus */
 	if (SF) {
 		jmp(cpu);
@@ -403,7 +403,7 @@ void JM(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JPE(I8080* cpu) {
+static void JPE(I8080* cpu) {
 	/* Jump parity even */
 	if (PF) {
 		jmp(cpu);
@@ -413,7 +413,7 @@ void JPE(I8080* cpu) {
 	}
 	CYCLES(10);
 }
-void JPO(I8080* cpu) {
+static void JPO(I8080* cpu) {
 	/* Jump parity odd */
 	if (!PF) {
 		jmp(cpu);
@@ -424,69 +424,69 @@ void JPO(I8080* cpu) {
 	CYCLES(10);
 }
 
-void IN(I8080* cpu) {
+static void IN(I8080* cpu) {
 	uint8_t port = READ_BYTE(PC + 1);
 	A = READ_IO(port);
 	PC += 2; 
 	CYCLES(10);
 }
-void OUT(I8080* cpu) {
+static void OUT(I8080* cpu) {
 	uint8_t port = READ_BYTE(PC + 1);
 	WRITE_IO(port, A);
 	PC += 2;
 	CYCLES(10);
 }
 
-void LXI_BC(I8080* cpu) {
+static void LXI_BC(I8080* cpu) {
 	/* Load 16-bit IMM into BC */
 	C = READ_BYTE(PC + 1);
 	B = READ_BYTE(PC + 2);
 	PC += 3;
 	CYCLES(10);
 }
-void LXI_DE(I8080* cpu) {
+static void LXI_DE(I8080* cpu) {
 	/* Load 16-bit IMM into DE */
 	E = READ_BYTE(PC + 1);
 	D = READ_BYTE(PC + 2);
 	PC += 3;
 	CYCLES(10);
 }
-void LXI_HL(I8080* cpu) {
+static void LXI_HL(I8080* cpu) {
 	/* Load 16-bit IMM into HL */
 	L = READ_BYTE(PC + 1);
 	H = READ_BYTE(PC + 2);
 	PC += 3;
 	CYCLES(10);
 }
-void LXI_SP(I8080* cpu) {
+static void LXI_SP(I8080* cpu) {
 	/* Load 16-bit IMM into SP */
 	SP = READ_ADDRESS;
 	PC += 3;
 	CYCLES(10);
 }
 
-void PUSH_BC(I8080* cpu) {
+static void PUSH_BC(I8080* cpu) {
 	/* Push BC */
 	push_byte(cpu, B);
 	push_byte(cpu, C);
 	PC += 1;
 	CYCLES(11);
 }
-void PUSH_DE(I8080* cpu) {
+static void PUSH_DE(I8080* cpu) {
 	/* Push DE */
 	push_byte(cpu, D);
 	push_byte(cpu, E);
 	PC += 1;
 	CYCLES(11);
 }
-void PUSH_HL(I8080* cpu) {
+static void PUSH_HL(I8080* cpu) {
 	/* Push HL */
 	push_byte(cpu, H);
 	push_byte(cpu, L);
 	PC += 1;
 	CYCLES(11);
 }
-void PUSH_PSW(I8080* cpu) {
+static void PUSH_PSW(I8080* cpu) {
 	/* Push PSW */
 
 	/* restore always 1, 0 flags in FLAGS */
@@ -500,28 +500,28 @@ void PUSH_PSW(I8080* cpu) {
 	CYCLES(11);
 }
 
-void POP_BC(I8080* cpu) {
+static void POP_BC(I8080* cpu) {
 	/* Pop BC */
 	pop_byte(cpu, &C);
 	pop_byte(cpu, &B);
 	PC += 1;
 	CYCLES(10);
 }
-void POP_DE(I8080* cpu) {
+static void POP_DE(I8080* cpu) {
 	/* Pop DE */
 	pop_byte(cpu, &E);
 	pop_byte(cpu, &D);
 	PC += 1;
 	CYCLES(10);
 }
-void POP_HL(I8080* cpu) {
+static void POP_HL(I8080* cpu) {
 	/* Pop HL */
 	pop_byte(cpu, &L);
 	pop_byte(cpu, &H);
 	PC += 1;
 	CYCLES(10);
 }
-void POP_PSW(I8080* cpu) {
+static void POP_PSW(I8080* cpu) {
 	/* Pop PSW */
 	pop_byte(cpu, &F);
 	pop_byte(cpu, &A);
@@ -535,14 +535,14 @@ void POP_PSW(I8080* cpu) {
 	CYCLES(10);
 }
 
-void STA(I8080* cpu) {
+static void STA(I8080* cpu) {
 	/* Store A to [address] */
 	uint16_t address = READ_ADDRESS;
 	WRITE_BYTE(address, A);
 	PC += 3;
 	CYCLES(13);
 }
-void LDA(I8080* cpu) {
+static void LDA(I8080* cpu) {
 	/* Load A from [address] */
 	uint16_t address = READ_ADDRESS;
 	A = READ_BYTE(address);
@@ -550,7 +550,7 @@ void LDA(I8080* cpu) {
 	CYCLES(13);
 }
 
-void XCHG(I8080* cpu) {
+static void XCHG(I8080* cpu) {
 	/* Exchange HL with DE */
 	uint8_t l = L;
 	uint8_t h = H;
@@ -564,7 +564,7 @@ void XCHG(I8080* cpu) {
 	PC += 1;
 	CYCLES(4);
 }
-void XTHL(I8080* cpu) {
+static void XTHL(I8080* cpu) {
 	/* Exchange HL with top of stack */
 	uint8_t l = L;
 	uint8_t h = H;
@@ -576,19 +576,19 @@ void XTHL(I8080* cpu) {
 	CYCLES(18);
 }
 
-void SPHL(I8080* cpu) {
+static void SPHL(I8080* cpu) {
 	/* Load SP with HL */
 	SP = (H << 8) | L;
 	PC += 1;
 	CYCLES(5);
 }
-void PCHL(I8080* cpu) {
+static void PCHL(I8080* cpu) {
 	/* Load PC with HL */
 	PC = (H << 8) | L;
 	CYCLES(5);
 }
 
-void DAD_BC(I8080* cpu) {
+static void DAD_BC(I8080* cpu) {
 	/* Add BC to HL */
 	uint16_t hl = (H << 8) | L;
 	uint16_t bc = (B << 8) | C;
@@ -599,7 +599,7 @@ void DAD_BC(I8080* cpu) {
 	PC += 1;
 	CYCLES(10);
 }
-void DAD_DE(I8080* cpu) {
+static void DAD_DE(I8080* cpu) {
 	/* Add DE to HL */
 	uint16_t hl = (H << 8) | L;
 	uint16_t de = (D << 8) | E;
@@ -610,7 +610,7 @@ void DAD_DE(I8080* cpu) {
 	PC += 1;
 	CYCLES(10);
 }
-void DAD_HL(I8080* cpu) {
+static void DAD_HL(I8080* cpu) {
 	/* Add HL to HL; Shift HL left 1 */
 	uint16_t hl = (H << 8) | L;
 	uint32_t tmp = hl << 0x1;
@@ -620,7 +620,7 @@ void DAD_HL(I8080* cpu) {
 	PC += 1;
 	CYCLES(10);
 }
-void DAD_SP(I8080* cpu) {
+static void DAD_SP(I8080* cpu) {
 	/* Add SP to HL */
 	uint16_t hl = (H << 8) | L;
 	uint32_t tmp = hl + SP;
@@ -631,14 +631,14 @@ void DAD_SP(I8080* cpu) {
 	CYCLES(10);
 }
 
-void STAX_BC(I8080* cpu) {
+static void STAX_BC(I8080* cpu) {
 	/* Store A at [BC] */
 	uint16_t address = (B << 8) | C;
 	WRITE_BYTE(address, A);
 	PC += 1;
 	CYCLES(7);
 }
-void STAX_DE(I8080* cpu) {
+static void STAX_DE(I8080* cpu) {
 	/* Store A at [DE] */
 	uint16_t address = (D << 8) | E;
 	WRITE_BYTE(address, A);
@@ -646,14 +646,14 @@ void STAX_DE(I8080* cpu) {
 	CYCLES(7);
 }
 
-void LDAX_BC(I8080* cpu) {
+static void LDAX_BC(I8080* cpu) {
 	/* Load A from [BC] */
 	uint16_t address = (B << 8) | C;
 	A = READ_BYTE(address);
 	PC += 1;
 	CYCLES(7);
 }
-void LDAX_DE(I8080* cpu) {
+static void LDAX_DE(I8080* cpu) {
 	/* Load A from [DE] */
 	uint16_t address = (D << 8) | E;
 	A = READ_BYTE(address);
@@ -661,13 +661,13 @@ void LDAX_DE(I8080* cpu) {
 	CYCLES(7);
 }
 
-void MOV_R_R(I8080* cpu) {
+static void MOV_R_R(I8080* cpu) {
 	/* Move register to register */
 	cpu->registers[DDD] = cpu->registers[SSS];
 	PC += 1;
 	CYCLES(5);
 }
-void MOV_M_R(I8080* cpu) {
+static void MOV_M_R(I8080* cpu) {
 	/* Move register to [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = cpu->registers[SSS];
@@ -675,7 +675,7 @@ void MOV_M_R(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void MOV_R_M(I8080* cpu) {
+static void MOV_R_M(I8080* cpu) {
 	/* mov [HL] to register */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -684,13 +684,13 @@ void MOV_R_M(I8080* cpu) {
 	CYCLES(7);
 }
 
-void MOV_I_R(I8080* cpu) {
+static void MOV_I_R(I8080* cpu) {
 	/* Move immediate to register */
 	cpu->registers[DDD] = READ_BYTE(PC + 1);
 	PC += 2;
 	CYCLES(7);
 }
-void MOV_I_M(I8080* cpu) {
+static void MOV_I_M(I8080* cpu) {
 	/* Move immediate to [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(PC + 1);
@@ -699,7 +699,7 @@ void MOV_I_M(I8080* cpu) {
 	CYCLES(10);
 }
 
-void INR_R(I8080* cpu) {
+static void INR_R(I8080* cpu) {
 	/* Increment r */
 	uint16_t tmp = cpu->registers[DDD] + 1;
 	AF = (tmp & 0xF) == 0;
@@ -710,7 +710,7 @@ void INR_R(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void DCR_R(I8080* cpu) {
+static void DCR_R(I8080* cpu) {
 	/* Decrement r */
 	uint16_t tmp = cpu->registers[DDD] - 1;
 	AF = !((tmp & 0xF) == 0xF);
@@ -722,7 +722,7 @@ void DCR_R(I8080* cpu) {
 	CYCLES(5);
 }
 
-void INR_M(I8080* cpu) {
+static void INR_M(I8080* cpu) {
 	/* Increment [HL] */
 	uint16_t address = (H << 8) | L;
 	uint16_t tmp = READ_BYTE(address) + 1;
@@ -734,7 +734,7 @@ void INR_M(I8080* cpu) {
 	PC += 1; 
 	CYCLES(10);
 }
-void DCR_M(I8080* cpu) {
+static void DCR_M(I8080* cpu) {
 	/* Decrement [HL] */
 	uint16_t address = (H << 8) | L;
 	uint16_t tmp = READ_BYTE(address) - 1;
@@ -747,57 +747,57 @@ void DCR_M(I8080* cpu) {
 	CYCLES(10);
 }
 
-void ADD_R(I8080* cpu) {
+static void ADD_R(I8080* cpu) {
 	/* ADD r to A */
 	alu_add(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void ADC_R(I8080* cpu) {
+static void ADC_R(I8080* cpu) {
 	/* ADC r to A */
 	alu_adc(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void SUB_R(I8080* cpu) {
+static void SUB_R(I8080* cpu) {
 	/* SUB r from A */
 	alu_sub(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void SBB_R(I8080* cpu) {
+static void SBB_R(I8080* cpu) {
 	/* SBB r from A */
 	alu_sbb(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
 
-void ANA_R(I8080* cpu) {
+static void ANA_R(I8080* cpu) {
 	/* AND A with r */
 	alu_and(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void XRA_R(I8080* cpu) {
+static void XRA_R(I8080* cpu) {
 	/* XOR A with r */
 	alu_xor(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void ORA_R(I8080* cpu) {
+static void ORA_R(I8080* cpu) {
 	/* OR A with r */
 	alu_or(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
-void CMP_R(I8080* cpu) {
+static void CMP_R(I8080* cpu) {
 	/* CMP A with r */
 	alu_cmp(cpu, cpu->registers[SSS]);
 	PC += 1;
 	CYCLES(4);
 }
 
-void ADD_M(I8080* cpu) {
+static void ADD_M(I8080* cpu) {
 	/* ADD [HL] to A */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -805,7 +805,7 @@ void ADD_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void ADC_M(I8080* cpu) {
+static void ADC_M(I8080* cpu) {
 	/* ADC [HL] to A */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -813,7 +813,7 @@ void ADC_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void SUB_M(I8080* cpu) {
+static void SUB_M(I8080* cpu) {
 	/* SUB [HL] from A */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -821,7 +821,7 @@ void SUB_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void SBB_M(I8080* cpu) {
+static void SBB_M(I8080* cpu) {
 	/* SBB [HL] from A */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -830,7 +830,7 @@ void SBB_M(I8080* cpu) {
 	CYCLES(7);
 }
 
-void ANA_M(I8080* cpu) {
+static void ANA_M(I8080* cpu) {
 	/* AND A with [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -838,7 +838,7 @@ void ANA_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void XRA_M(I8080* cpu) {
+static void XRA_M(I8080* cpu) {
 	/* XOR A with [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -846,7 +846,7 @@ void XRA_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void ORA_M(I8080* cpu) {
+static void ORA_M(I8080* cpu) {
 	/* OR A with [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
@@ -854,7 +854,7 @@ void ORA_M(I8080* cpu) {
 	PC += 1;
 	CYCLES(7);
 }
-void CMP_M(I8080* cpu) {
+static void CMP_M(I8080* cpu) {
 	/* CMP A with [HL] */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address); 
@@ -863,28 +863,28 @@ void CMP_M(I8080* cpu) {
 	CYCLES(7);
 }
 
-void ADD_I(I8080* cpu) {
+static void ADD_I(I8080* cpu) {
 	/* ADD imm to A */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_add(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void ADC_I(I8080* cpu) {
+static void ADC_I(I8080* cpu) {
 	/* ADC imm to A */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_adc(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void SUB_I(I8080* cpu) {
+static void SUB_I(I8080* cpu) {
 	/* SUB imm from A */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_sub(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void SBB_I(I8080* cpu) {
+static void SBB_I(I8080* cpu) {
 	/* SBB imm from A */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_sbb(cpu, imm);
@@ -892,28 +892,28 @@ void SBB_I(I8080* cpu) {
 	CYCLES(7);
 }
 
-void ANA_I(I8080* cpu) {
+static void ANA_I(I8080* cpu) {
 	/* AND A with imm */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_and(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void XRA_I(I8080* cpu) {
+static void XRA_I(I8080* cpu) {
 	/* XOR A with imm */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_xor(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void ORA_I(I8080* cpu) {
+static void ORA_I(I8080* cpu) {
 	/* OR A with imm */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_or(cpu, imm);
 	PC += 2;
 	CYCLES(7);
 }
-void CMP_I(I8080* cpu) {
+static void CMP_I(I8080* cpu) {
 	/* CMP A with imm */
 	uint8_t imm = READ_BYTE(PC + 1);
 	alu_cmp(cpu, imm);
@@ -921,7 +921,7 @@ void CMP_I(I8080* cpu) {
 	CYCLES(7);
 }
 
-void RLC(I8080* cpu) {
+static void RLC(I8080* cpu) {
 	/* Rotate A left */
 	uint8_t x = A;
 	uint8_t cf = ((x & 0x80) >> 0x7);
@@ -930,7 +930,7 @@ void RLC(I8080* cpu) {
 	PC += 1;
 	CYCLES(4);
 }
-void RRC(I8080* cpu) {
+static void RRC(I8080* cpu) {
 	/* Rotate A right */
 	uint8_t x = A;
 	uint8_t cf = (x & 0x1);
@@ -939,7 +939,7 @@ void RRC(I8080* cpu) {
 	PC += 1;
 	CYCLES(4);
 }
-void RAL(I8080* cpu) {
+static void RAL(I8080* cpu) {
 	/* Rotate A left through carry */
 	uint8_t x = A;
 	uint8_t cf = CF;
@@ -948,7 +948,7 @@ void RAL(I8080* cpu) {
 	PC += 1;
 	CYCLES(4);
 }
-void RAR(I8080* cpu) {
+static void RAR(I8080* cpu) {
 	/* Rotate A right through carry */
 	uint8_t x = A;
 	uint8_t cf = CF;
@@ -958,7 +958,7 @@ void RAR(I8080* cpu) {
 	CYCLES(4);
 }
 
-void INX_BC(I8080* cpu) {
+static void INX_BC(I8080* cpu) {
 	/* Increment BC */
 	uint32_t tmp = (B << 8) | C;
 	tmp += 1;
@@ -967,7 +967,7 @@ void INX_BC(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void INX_DE(I8080* cpu) {
+static void INX_DE(I8080* cpu) {
 	/* Increment DE */
 	uint32_t tmp = (D << 8) | E;
 	tmp += 1;
@@ -976,7 +976,7 @@ void INX_DE(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void INX_HL(I8080* cpu) {
+static void INX_HL(I8080* cpu) {
 	/* Increment HL */
 	uint32_t tmp = (H << 8) | L;
 	tmp += 1;
@@ -985,7 +985,7 @@ void INX_HL(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void INX_SP(I8080* cpu) {
+static void INX_SP(I8080* cpu) {
 	/* Increment SP */
 	uint32_t tmp = SP;
 	tmp += 1;
@@ -994,7 +994,7 @@ void INX_SP(I8080* cpu) {
 	CYCLES(5);
 }
 
-void DCX_BC(I8080* cpu) {
+static void DCX_BC(I8080* cpu) {
 	/* Decrement BC */
 	uint32_t tmp = (B << 8) | C;
 	tmp -= 1;
@@ -1003,7 +1003,7 @@ void DCX_BC(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void DCX_DE(I8080* cpu) {
+static void DCX_DE(I8080* cpu) {
 	/* Decrement DE */
 	uint32_t tmp = (D << 8) | E;
 	tmp -= 1;
@@ -1012,7 +1012,7 @@ void DCX_DE(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void DCX_HL(I8080* cpu) {
+static void DCX_HL(I8080* cpu) {
 	/* Decrement HL */
 	uint32_t tmp = (H << 8) | L;
 	tmp -= 1;
@@ -1021,7 +1021,7 @@ void DCX_HL(I8080* cpu) {
 	PC += 1;
 	CYCLES(5);
 }
-void DCX_SP(I8080* cpu) {
+static void DCX_SP(I8080* cpu) {
 	/* Decrement SP */
 	uint32_t tmp = SP;
 	tmp -= 1;
@@ -1030,7 +1030,7 @@ void DCX_SP(I8080* cpu) {
 	CYCLES(5);
 }
 
-void SHLD(I8080* cpu) {
+static void SHLD(I8080* cpu) {
 	/* Store HL to address */
 	uint16_t address = READ_ADDRESS;
 	WRITE_BYTE(address, L);
@@ -1038,7 +1038,7 @@ void SHLD(I8080* cpu) {
 	PC += 3;
 	CYCLES(16);
 }
-void LHLD(I8080* cpu) {
+static void LHLD(I8080* cpu) {
 	/* Load HL from address */
 	uint16_t address = READ_ADDRESS;
 	L = READ_BYTE(address);
@@ -1047,27 +1047,27 @@ void LHLD(I8080* cpu) {
 	CYCLES(16);
 }
 
-void CMA(I8080* cpu) {
+static void CMA(I8080* cpu) {
 	/* Complement A */
 	uint8_t x = A;
 	A = ~x;
 	PC += 1;
 	CYCLES(4);
 }
-void STC(I8080* cpu) {
+static void STC(I8080* cpu) {
 	/* Set carry */
 	CF = 0b1;
 	PC += 1;
 	CYCLES(4);
 }
-void CMC(I8080* cpu) {
+static void CMC(I8080* cpu) {
 	/* Complement carry */
 	CF ^= 0b1;
 	PC += 1;
 	CYCLES(4);
 }
 
-void DAA(I8080* cpu) {
+static void DAA(I8080* cpu) {
 	/* Decimal Adjust A */
 	uint8_t correction = 0;
 	uint8_t carry = CF;
@@ -1087,33 +1087,33 @@ void DAA(I8080* cpu) {
 	CYCLES(4);
 }
 
-void RST(I8080* cpu) {
-	uint8_t rst_address = (cpu->opcode & 0b00111000) << 3;
+static void RST(I8080* cpu) {
+	uint8_t rst_address = (cpu->opcode & 0b00111000);
 	uint16_t return_address = PC;
 	push_word(cpu, return_address);
 	PC = rst_address;
 	CYCLES(11);
 }
-void HLT(I8080* cpu) {
+static void HLT(I8080* cpu) {
 	/* halt cpu */
 	cpu->flags.halt = 0b1;
 	//PC += 1;
 	CYCLES(7);
 }
-void EI(I8080* cpu) {
+static void EI(I8080* cpu) {
 	/* Enable interrupts */
 	cpu->flags.interrupt = 0b1;
 	PC += 1;
 	CYCLES(4);
 }
-void DI(I8080* cpu) {
+static void DI(I8080* cpu) {
 	/* Disable interrupts */
 	cpu->flags.interrupt = 0b0;
 	PC += 1;
 	CYCLES(4);
 }
 
-void NOP(I8080* cpu) {
+static void NOP(I8080* cpu) {
 	PC += 1;
 	CYCLES(4);
 }
