@@ -10,17 +10,13 @@
 
 const MM spclaser_rom = {
 	.start  = 0x0000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 const MM spclaser_ram = {
 	.start  = 0x2000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR,
-	.type   = MM_TYPE_RAM
+	.flags  = MM_FLAG_MIRROR
 };
 const MM* const spclaser_banks[2] = { &spclaser_rom, &spclaser_ram };
 

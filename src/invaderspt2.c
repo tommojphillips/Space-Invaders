@@ -10,24 +10,18 @@
 
 const MM invaderspt2_rom_bank1 = {
 	.start  = 0x0000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 const MM invaderspt2_ram = {
 	.start  = 0x2000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR,
-	.type   = MM_TYPE_RAM
+	.flags  = MM_FLAG_MIRROR
 };
 const MM invaderspt2_rom_bank2 = {
 	.start  = 0x4000,
-	.offset = 0x2000,
 	.size   = 0x1000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 const MM* const invaderspt2_banks[3] = { &invaderspt2_rom_bank1, &invaderspt2_ram, &invaderspt2_rom_bank2 };
 
@@ -42,9 +36,9 @@ uint8_t invaderspt2_read_io(uint8_t port) {
 
 		case PORT_INP2:
 			return *(uint8_t*)&taito8080.io_input.input2;
-		
+
 		case PORT_SHIFT_REG:
-			return (taito8080.shift_reg >> (8 - taito8080.shift_amount)) & 0xFF;
+			return mb14241_shift(&taito8080.shift_register);
 
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -54,13 +48,13 @@ uint8_t invaderspt2_read_io(uint8_t port) {
 }
 void invaderspt2_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
-
+		
 		case PORT_SHIFT_AMNT:
-			taito8080.shift_amount = (value & 0x7);
+			mb14241_amount(&taito8080.shift_register, value);
 			break;
 
-		case PORT_SHIFT_DATA:			
-			taito8080.shift_reg = (value << 8) | (taito8080.shift_reg >> 8);
+		case PORT_SHIFT_DATA:
+			mb14241_data(&taito8080.shift_register, value);
 			break;
 
 		case PORT_SOUND1: /* Bank1 Sound */
@@ -85,8 +79,8 @@ static int invaderspt2_load_rom() {
 	if (taito8080_read_rom("invadpt2/pv01", 0x0000, 0x800) != 0) return 1;
 	if (taito8080_read_rom("invadpt2/pv02", 0x0800, 0x800) != 0) return 1;
 	if (taito8080_read_rom("invadpt2/pv03", 0x1000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("invadpt2/pv04", 0x1800, 0x800) != 0)	return 1;
-	if (taito8080_read_rom("invadpt2/pv05", 0x2000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invadpt2/pv04", 0x1800, 0x800) != 0) return 1;
+	if (taito8080_read_rom("invadpt2/pv05", 0x4000, 0x800) != 0) return 1;
 	return 0;
 }
 int invaderspt2_init() {

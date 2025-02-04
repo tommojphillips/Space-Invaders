@@ -4,7 +4,8 @@
 
 #include <stdint.h>
 
-#include "I8080.h"
+#include "i8080.h"
+#include "mb14241.h"
 #include "emulator.h"
 
 #ifndef TAITO8080_H
@@ -62,8 +63,7 @@ typedef struct {
 typedef struct {
 	I8080 cpu;
 	MEMORY_MAP mm;
-	uint8_t shift_amount;
-	uint16_t shift_reg;
+	MB14241 shift_register;
 	OUTPUT_PORT io_output;
 	INPUT_PORT io_input;
 } TAITO8080;

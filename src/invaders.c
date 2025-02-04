@@ -16,17 +16,13 @@
 
 const MM invaders_rom = {
 	.start  = 0x0000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 const MM invaders_ram = {
 	.start  = 0x2000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR,
-	.type   = MM_TYPE_RAM
+	.flags  = MM_FLAG_MIRROR
 };
 const MM* const invaders_banks[2] = { &invaders_rom, &invaders_ram };
 
@@ -40,7 +36,7 @@ uint8_t invaders_read_io(uint8_t port) {
 			return *(uint8_t*)&taito8080.io_input.input2;
 		
 		case PORT_SHIFT_REG:
-			return (taito8080.shift_reg >> (8 - taito8080.shift_amount)) & 0xFF;
+			return mb14241_shift(&taito8080.shift_register);
 			
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -52,11 +48,11 @@ void invaders_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
 
 		case PORT_SHIFT_AMNT:
-			taito8080.shift_amount = (value & 0x7);
+			mb14241_amount(&taito8080.shift_register, value);
 			break;
 
-		case PORT_SHIFT_DATA:			
-			taito8080.shift_reg = (value << 8) | (taito8080.shift_reg >> 8);
+		case PORT_SHIFT_DATA:
+			mb14241_data(&taito8080.shift_register, value);
 			break;
 
 		case PORT_SOUND1: /* Bank1 Sound */

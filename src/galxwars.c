@@ -10,24 +10,18 @@
 
 MM galxwars_rom_bank1 = {
 	.start  = 0x0000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 MM galxwars_ram = {
 	.start  = 0x2000,
-	.offset = 0x0000,
 	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR,
-	.type   = MM_TYPE_RAM
+	.flags  = MM_FLAG_MIRROR
 };
 MM galxwars_rom_bank2 = {
 	.start  = 0x4000,
-	.offset = 0x2000,
 	.size   = 0x1000,
-	.flags  = MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags  = MM_FLAG_WRITE_PROTECTED
 };
 MM* galxwars_banks[3] = { &galxwars_rom_bank1, &galxwars_ram, &galxwars_rom_bank2 };
 
@@ -44,7 +38,7 @@ uint8_t galxwars_read_io(uint8_t port) {
 		//	return *(uint8_t*)&taito8080.io_input.input2;
 
 		//case PORT_SHIFT_REG:
-		//	return (taito8080.shift_reg >> (8 - taito8080.shift_amount)) & 0xFF;
+		//	return mb14241_shift(&taito8080.shift_register);
 	
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -56,11 +50,11 @@ void galxwars_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
 
 		//case PORT_SHIFT_AMNT:
-		//	taito8080.shift_amount = (value & 0x7);
+		//	mb14241_amount(&taito8080.shift_register, value);
 		//	break;
 
 		//case PORT_SHIFT_DATA:
-		//	taito8080.shift_reg = (value << 8) | (taito8080.shift_reg >> 8);
+		//	mb14241_data(&taito8080.shift_register, value);
 		//	break;
 
 		//case PORT_SOUND1: /* Bank1 Sound */
@@ -86,8 +80,8 @@ static int galxwars_load_rom() {
 	if (taito8080_read_rom("galxwars/univgw4.1", 0x0400, 0x400) != 0) return 1;
 	if (taito8080_read_rom("galxwars/univgw5.2", 0x0800, 0x400) != 0) return 1;
 	if (taito8080_read_rom("galxwars/univgw6.3", 0x0C00, 0x400) != 0) return 1;
-	if (taito8080_read_rom("galxwars/univgw1.4", 0x2000, 0x400) != 0) return 1;
-	if (taito8080_read_rom("galxwars/univgw2.5", 0x2400, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw1.4", 0x4000, 0x400) != 0) return 1;
+	if (taito8080_read_rom("galxwars/univgw2.5", 0x4400, 0x400) != 0) return 1;
 	return 0;
 }
 int galxwars_init() {

@@ -1,189 +1,44 @@
 
 #include <stdio.h>
 #include "i8080.h"
+#include "taito8080.h"
+#include "mb14241.h"
 
-void CALL(I8080* cpu);
-void CC(I8080* cpu);
-void CNC(I8080* cpu);
-void CZ(I8080* cpu);
-void CNZ(I8080* cpu);
-void CP(I8080* cpu);
-void CM(I8080* cpu);
-void CPE(I8080* cpu);
-void CPO(I8080* cpu);
+#define PC  taito8080.cpu.pc
+#define PCH (taito8080.cpu.pc >> 8)
+#define PCL (taito8080.cpu.pc & 0xFF)
 
-void RET(I8080* cpu);
-void RC(I8080* cpu);
-void RNC(I8080* cpu);
-void RZ(I8080* cpu);
-void RNZ(I8080* cpu);
-void RP(I8080* cpu);
-void RM(I8080* cpu);
-void RPE(I8080* cpu);
-void RPO(I8080* cpu);
+#define SP taito8080.cpu.sp
+#define SPH (taito8080.cpu.sp >> 8)
+#define SPL (taito8080.cpu.sp & 0xFF)
 
-void RST(I8080* cpu);
+#define A  taito8080.cpu.registers[REG_A]
+#define B  taito8080.cpu.registers[REG_B]
+#define C  taito8080.cpu.registers[REG_C]
+#define D  taito8080.cpu.registers[REG_D]
+#define E  taito8080.cpu.registers[REG_E]
+#define H  taito8080.cpu.registers[REG_H]
+#define L  taito8080.cpu.registers[REG_L]
 
-void IN(I8080* cpu);
-void OUT(I8080* cpu);
+#define BC	taito8080.cpu.register_pairs[RP_BC]
+#define DE	taito8080.cpu.register_pairs[RP_DE]
+#define HL	taito8080.cpu.register_pairs[RP_HL]
+#define PSW	taito8080.cpu.register_pairs[RP_PSW]
 
-void LXI_BC(I8080* cpu);
-void LXI_DE(I8080* cpu);
-void LXI_HL(I8080* cpu);
-void LXI_SP(I8080* cpu);
+#define SF taito8080.cpu.status_flags->s
+#define CF taito8080.cpu.status_flags->c
+#define ZF taito8080.cpu.status_flags->z
+#define AF taito8080.cpu.status_flags->h
+#define PF taito8080.cpu.status_flags->p
 
-void PUSH_BC(I8080* cpu);
-void PUSH_DE(I8080* cpu);
-void PUSH_HL(I8080* cpu);
-void PUSH_PSW(I8080* cpu);
+#define SSS (taito8080.cpu.opcode & 0b111)
+#define DDD ((taito8080.cpu.opcode >> 3) & 0b111)
 
-void POP_BC(I8080* cpu);
-void POP_DE(I8080* cpu);
-void POP_HL(I8080* cpu);
-void POP_PSW(I8080* cpu);
+#define READ_BYTE(address) taito8080.cpu.read_byte(address)
+#define WRITE_BYTE(address, value) taito8080.cpu.write_byte(address, value)
 
-void STA(I8080* cpu);
-void LDA(I8080* cpu);
-
-void XCHG(I8080* cpu);
-void XTHL(I8080* cpu);
-
-void SPHL(I8080* cpu);
-void PCHL(I8080* cpu);
-
-void DAD_BC(I8080* cpu);
-void DAD_DE(I8080* cpu);
-void DAD_HL(I8080* cpu);
-void DAD_SP(I8080* cpu);
-
-void STAX_BC(I8080* cpu);
-void STAX_DE(I8080* cpu);
-
-void LDAX_BC(I8080* cpu);
-void LDAX_DE(I8080* cpu);
-
-void MOV_R_R(I8080* cpu);
-void MOV_M_R(I8080* cpu);
-void MOV_R_M(I8080* cpu);
-
-void HLT(I8080* cpu);
-
-void MOV_I_R(I8080* cpu);
-void MOV_I_M(I8080* cpu);
-
-void INR_R(I8080* cpu);
-void DCR_R(I8080* cpu);
-
-void INR_M(I8080* cpu);
-void DCR_M(I8080* cpu);
-
-void ADD_R(I8080* cpu);
-void ADC_R(I8080* cpu);
-void SUB_R(I8080* cpu);
-void SBB_R(I8080* cpu);
-
-void ANA_R(I8080* cpu);
-void XRA_R(I8080* cpu);
-void ORA_R(I8080* cpu);
-void CMP_R(I8080* cpu);
-
-void ADD_M(I8080* cpu);
-void ADC_M(I8080* cpu);
-void SUB_M(I8080* cpu);
-void SBB_M(I8080* cpu);
-
-void ANA_M(I8080* cpu);
-void XRA_M(I8080* cpu);
-void ORA_M(I8080* cpu);
-void CMP_M(I8080* cpu);
-
-void ADD_I(I8080* cpu);
-void ADC_I(I8080* cpu);
-void SUB_I(I8080* cpu);
-void SBB_I(I8080* cpu);
-
-void ANA_I(I8080* cpu);
-void XRA_I(I8080* cpu);
-void ORA_I(I8080* cpu);
-void CMP_I(I8080* cpu);
-
-void RLC(I8080* cpu);
-void RRC(I8080* cpu);
-void RAL(I8080* cpu);
-void RAR(I8080* cpu);
-
-void JMP(I8080* cpu);
-void JC(I8080* cpu);
-void JNC(I8080* cpu);
-void JZ(I8080* cpu);
-void JNZ(I8080* cpu);
-void JP(I8080* cpu);
-void JM(I8080* cpu);
-void JPE(I8080* cpu);
-void JPO(I8080* cpu);
-
-void INX_BC(I8080* cpu);
-void INX_DE(I8080* cpu);
-void INX_HL(I8080* cpu);
-void INX_SP(I8080* cpu);
-void DCX_BC(I8080* cpu);
-void DCX_DE(I8080* cpu);
-void DCX_HL(I8080* cpu);
-void DCX_SP(I8080* cpu);
-void CMA(I8080* cpu);
-void STC(I8080* cpu);
-void CMC(I8080* cpu);
-void DAA(I8080* cpu);
-void SHLD(I8080* cpu);
-void LHLD(I8080* cpu);
-void EI(I8080* cpu);
-void DI(I8080* cpu);
-void NOP(I8080* cpu);
-
-void alu_and(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_xor(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_or(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_add(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_adc(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_sub(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_sbb(I8080* cpu, uint8_t* x1, uint8_t x2);
-void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2);
-
-#define PC cpu.pc
-#define PCH (cpu.pc >> 8)
-#define PCL (cpu.pc & 0xFF)
-
-#define SP cpu.sp
-#define SPH (cpu.sp >> 8)
-#define SPL (cpu.sp & 0xFF)
-
-#define A  cpu.registers[REG_A]
-#define B  cpu.registers[REG_B]
-#define C  cpu.registers[REG_C]
-#define D  cpu.registers[REG_D]
-#define E  cpu.registers[REG_E]
-#define H  cpu.registers[REG_H]
-#define L  cpu.registers[REG_L]
-
-#define BC	cpu.register_pairs[RP_BC]
-#define DE	cpu.register_pairs[RP_DE]
-#define HL	cpu.register_pairs[RP_HL]
-#define PSW	cpu.register_pairs[RP_PSW]
-
-#define SF cpu.status_flags->s
-#define CF cpu.status_flags->c
-#define ZF cpu.status_flags->z
-#define AF cpu.status_flags->h
-#define PF cpu.status_flags->p
-
-#define SSS (cpu.opcode & 0b111)
-#define DDD ((cpu.opcode >> 3) & 0b111)
-
-#define READ_BYTE(address) cpu.read_byte(address)
-#define WRITE_BYTE(address, value) cpu.write_byte(address, value)
-
-#define READ_IO(port) cpu.read_io(port)
-#define WRITE_IO(port, value) cpu.write_io(port, value)
+#define READ_IO(port) taito8080.cpu.read_io(port)
+#define WRITE_IO(port, value) taito8080.cpu.write_io(port, value)
 
 #define ASSERT_EQUAL(expected, actual, message) \
     if ((expected) != (actual)) { \
@@ -207,13 +62,11 @@ void alu_cmp(I8080* cpu, uint8_t x1, uint8_t x2);
     }
 
 
-#define CPU_RESET i8080_reset(&cpu)
-#define CPU_EXECUTE i8080_execute(&cpu)
+#define CPU_RESET i8080_reset(&taito8080.cpu)
+#define CPU_EXECUTE i8080_execute(&taito8080.cpu)
 
 #define PASS return 0
-#define TEST_INIT //I8080 cpu; i8080_init(&cpu);
-
-extern I8080 cpu;
+#define TEST_INIT
 
 void run_test(const char* test_name, int (*test_func)()) {
     if (test_func() == 0) {
@@ -221,7 +74,7 @@ void run_test(const char* test_name, int (*test_func)()) {
     }
 }
 
-int test_dad() {
+/*int test_dad() {
     TEST_INIT;
 
     // Test without carry
@@ -686,7 +539,6 @@ int test_pchl() {
     PASS;
 }
 
-
 int tst8080() {
     TEST_INIT;
 
@@ -823,55 +675,116 @@ int tst8080() {
 
     PASS;
 }
-
-#include "invaders.h"
+*/
 int test_reg16() {
     TEST_INIT;
 
-    WRITE_IO(0x04, 0x00);
-    WRITE_IO(0x04, 0x00);
+    MB14241 shift_reg = { 0 };
 
-    WRITE_IO(0x04, 0xAA);
-    ASSERT_EQUAL_HEX(0xAA00, invaders.shift_reg, "REG 16");
     
-    uint8_t s = READ_IO(0x03);
+    mb14241_data(&shift_reg, 0xAA);
+    ASSERT_EQUAL_HEX(0xAA00, shift_reg.data, "REG 16");
+    
+    uint8_t s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0xAA, s, "REG 16");
 
-    WRITE_IO(0x04, 0xFF);
-    ASSERT_EQUAL_HEX(0xFFAA, invaders.shift_reg, "REG 16");
+    mb14241_data(&shift_reg, 0xFF);
+    ASSERT_EQUAL_HEX(0xFFAA, shift_reg.data, "REG 16");
 
-    s = READ_IO(0x03);
+    s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0xFF, s, "REG 16");
 
-    WRITE_IO(0x04, 0x12);
-    ASSERT_EQUAL_HEX(0x12FF, invaders.shift_reg, "REG 16");
+    mb14241_data(&shift_reg, 0x12);
+    ASSERT_EQUAL_HEX(0x12FF, shift_reg.data, "REG 16");
 
-    s = READ_IO(0x03);
+    s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0x12, s, "REG 16");
 
-    WRITE_IO(0x02, 0x2);
-    WRITE_IO(0x04, 0x39);
-    ASSERT_EQUAL_HEX(0x3912, invaders.shift_reg, "REG 16");
+    mb14241_amount(&shift_reg, 0x2);
+    mb14241_data(&shift_reg, 0x39);
+    ASSERT_EQUAL_HEX(0x3912, shift_reg.data, "REG 16");
 
-    s = READ_IO(0x03);
+    s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0xE4, s, "REG 16");
 
-    WRITE_IO(0x02, 0x2);
-    WRITE_IO(0x04, 0x78);
-    ASSERT_EQUAL_HEX(0x7839, invaders.shift_reg, "REG 16");
+    mb14241_amount(&shift_reg, 0x2);
+    mb14241_data(&shift_reg, 0x78);
+    ASSERT_EQUAL_HEX(0x7839, shift_reg.data, "REG 16");
 
-    s = READ_IO(0x03);
+    s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0xE0, s, "REG 16");
 
-    WRITE_IO(0x02, 0x7);
-    WRITE_IO(0x04, 0x43);
-    ASSERT_EQUAL_HEX(0x4378, invaders.shift_reg, "REG 16");
+    mb14241_amount(&shift_reg, 0x7);
+    mb14241_data(&shift_reg, 0x43);
+    ASSERT_EQUAL_HEX(0x4378, shift_reg.data, "REG 16");
 
-    s = READ_IO(0x03);
+    s = mb14241_shift(&shift_reg);
     ASSERT_EQUAL_HEX(0xBC, s, "REG 16");
 
     PASS;
 }
+
+int test_rst() {
+    /*  case 0xC7:
+		case 0xCF:
+		case 0xD7:
+		case 0xDF:
+		case 0xE7:
+		case 0xEF:
+		case 0xF7:
+		case 0xFF:*/
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xC7); // RST 0
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x00, PC, "RST 0");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xCF); // RST 1
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x08, PC, "RST 1");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xD7); // RST 2
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x10, PC, "RST 2");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xDF); // RST 3
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x18, PC, "RST 3");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xE7); // RST 4
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x20, PC, "RST 4");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xEF); // RST 5
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x28, PC, "RST 5");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xF7); // RST 6
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x30, PC, "RST 6");
+
+    PC = 0x2000;
+    WRITE_BYTE(0x2000, 0xFF); // RST 7
+    CPU_EXECUTE;
+
+    ASSERT_EQUAL_HEX(0x38, PC, "RST 7");
+
+    PASS;
+}
+
 void test() {
     /*run_test("dad", test_dad);
     run_test("sub", test_sub);
@@ -885,7 +798,8 @@ void test() {
     run_test("xchg", test_xchg);
     run_test("xthl", test_xthl);
     run_test("sphl", test_sphl);
-    run_test("pchl", test_pchl);
-    run_test("REGISTER 16", test_reg16);*/
-    run_test("tst8080", tst8080);
+    run_test("pchl", test_pchl);*/
+    //run_test("REGISTER 16", test_reg16);
+    //run_test("tst8080", tst8080);
+    run_test("rst", test_rst);
 }

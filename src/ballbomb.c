@@ -10,24 +10,18 @@
 
 const MM ballbomb_rom_bank1 = {
 	.start	= 0x0000,
-	.offset = 0x0000,
 	.size	= 0x2000,
-	.flags	= MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags	= MM_FLAG_WRITE_PROTECTED
 };
 const MM ballbomb_ram = {
 	.start	= 0x2000,
-	.offset = 0x0000,
 	.size	= 0x2000,
-	.flags	= MM_FLAG_MIRROR,
-	.type   = MM_TYPE_RAM
+	.flags	= MM_FLAG_MIRROR
 };
 const MM ballbomb_rom_bank2 = {
 	.start	= 0x4000,
-	.offset = 0x2000,
 	.size	= 0x1000,
-	.flags	= MM_FLAG_WRITE_PROTECTED,
-	.type   = MM_TYPE_ROM
+	.flags	= MM_FLAG_WRITE_PROTECTED
 };
 const MM* const ballbomb_banks[3] = { &ballbomb_rom_bank1, &ballbomb_ram, &ballbomb_rom_bank2 };
 
@@ -41,7 +35,7 @@ uint8_t ballbomb_read_io(uint8_t port) {
 			return *(uint8_t*)&taito8080.io_input.input2;
 
 		case PORT_SHIFT_REG:
-			return (taito8080.shift_reg >> (8 - taito8080.shift_amount)) & 0xFF;
+			return mb14241_shift(&taito8080.shift_register);
 
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -51,13 +45,13 @@ uint8_t ballbomb_read_io(uint8_t port) {
 }
 void ballbomb_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
-
+		
 		case PORT_SHIFT_AMNT:
-			taito8080.shift_amount = (value & 0x7);
+			mb14241_amount(&taito8080.shift_register, value);
 			break;
 
 		case PORT_SHIFT_DATA:
-			taito8080.shift_reg = (value << 8) | (taito8080.shift_reg >> 8);
+			mb14241_data(&taito8080.shift_register, value);
 			break;
 
 		case PORT_SOUND1: /* Bank1 Sound */
@@ -87,8 +81,8 @@ static int ballbomb_load_rom() {
 	if (taito8080_read_rom("ballbomb/tn02",   0x0800, 0x800) != 0) return 1;
 	if (taito8080_read_rom("ballbomb/tn03",   0x1000, 0x800) != 0) return 1;
 	if (taito8080_read_rom("ballbomb/tn04",   0x1800, 0x800) != 0) return 1;
-	if (taito8080_read_rom("ballbomb/tn05-1", 0x2000, 0x800) != 0) return 1;
-	if (taito8080_read_rom("ballbomb/tn06",   0x2800, 0x400) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn05-1", 0x4000, 0x800) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn06",   0x4800, 0x400) != 0) return 1;
 	return 0;
 }
 int ballbomb_init() {

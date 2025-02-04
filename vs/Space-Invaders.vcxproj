@@ -92,6 +92,7 @@
     <ClCompile Include="..\lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\src\ballbomb.c" />
     <ClCompile Include="..\src\cpm.c" />
+    <ClCompile Include="..\src\cpu_tests.c" />
     <ClCompile Include="..\src\display.c" />
     <ClCompile Include="..\src\emulator.c" />
     <ClCompile Include="..\src\file.c" />
@@ -99,6 +100,7 @@
     <ClCompile Include="..\src\input.c" />
     <ClCompile Include="..\src\invaderspt2.c" />
     <ClCompile Include="..\src\lrescue.c" />
+    <ClCompile Include="..\src\mb14241.c" />
     <ClCompile Include="..\src\solfight.c" />
     <ClCompile Include="..\src\spclaser.c" />
     <ClCompile Include="..\src\taito8080.c" />
@@ -117,6 +119,7 @@
     <ClInclude Include="..\src\galxwars.h" />
     <ClInclude Include="..\src\invaderspt2.h" />
     <ClInclude Include="..\src\lrescue.h" />
+    <ClInclude Include="..\src\mb14241.h" />
     <ClInclude Include="..\src\solfight.h" />
     <ClInclude Include="..\src\spclaser.h" />
     <ClInclude Include="..\src\taito8080.h" />

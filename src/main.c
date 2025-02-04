@@ -16,15 +16,35 @@
 #define TAITO8080	1
 
 const MACHINE machines[] = {
-	{ CPM, "CPM i8080",	cpm_init, cpm_destroy,
-	  cpm_reset, cpm_update, cpm_vblank,
-	  NULL, NULL,
-	  cpm_load_test, cpm_tests, 5 },
+	{ 
+	  .id           = CPM,
+	  .name         = "CP/M i8080",
+	  .init         = cpm_init,
+	  .destroy      = cpm_destroy,
+	  .reset        = cpm_reset,
+	  .update       = cpm_update,
+	  .vblank       = cpm_vblank,
+	  .save_state   = NULL,
+	  .load_state   = NULL,
+	  .load_romset  = cpm_load_test,
+	  .romsets      = cpm_tests,
+	  .romset_count = 5
+	},
 	
-	{ TAITO8080, "taito i8080",	taito8080_init, taito8080_destroy,
-	  taito8080_reset, taito8080_update, taito8080_vblank,
-	  taito8080_save_state, taito8080_load_state, 
-	  taito8080_load_romset, taito8080_romsets, 7 },
+	{ 
+	  .id           = TAITO8080, 
+	  .name         = "taito i8080",
+	  .init         = taito8080_init,
+	  .destroy      = taito8080_destroy,
+	  .reset        = taito8080_reset,
+	  .update       = taito8080_update,
+	  .vblank       = taito8080_vblank,
+	  .save_state   = taito8080_save_state,
+	  .load_state   = taito8080_load_state,
+	  .load_romset  = taito8080_load_romset,
+	  .romsets      = taito8080_romsets,
+	  .romset_count = 7
+	},
 };
 
 static float render_elapsed_time;
@@ -32,8 +52,8 @@ static void start_frame() {
 	static uint64_t start_frame_time;
 	static float delta_time;
 	delta_time = (SDL_GetPerformanceCounter() - start_frame_time) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
-	render_elapsed_time += delta_time;
 	start_frame_time = SDL_GetPerformanceCounter();
+	render_elapsed_time += delta_time;
 }
 
 int main(int argc, char** argv) {

@@ -18,7 +18,7 @@
 
 #define REFRESH_RATE 60
 //#define CPU_CLOCK 2000000 /* 2 Mhz */
-#define CPU_CLOCK 10000000//2000000 /* 10 Mhz */
+#define CPU_CLOCK 100000000//2000000 /* 100 Mhz */
 #define VBLANK_RATE (CPU_CLOCK / REFRESH_RATE)
 
 //CPM* cpm = { 0 };

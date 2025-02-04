@@ -382,12 +382,14 @@ static void debug_window() {
 	Text("AF: %01X ", taito8080.cpu.status_flags->h);
 
 	Separator();	
-	Text("INT: %01X ", taito8080.cpu.flags.interrupt);
+	bool tmp = taito8080.cpu.flags.interrupt;
+	if (Checkbox("INT", &tmp)) taito8080.cpu.flags.interrupt = tmp;
 	SameLine();
-	Text("HALT: %01X ", taito8080.cpu.flags.halt);
+	tmp = taito8080.cpu.flags.halt;
+	if (Checkbox("HALT", &tmp)) taito8080.cpu.flags.halt = tmp;
 
 	Separator();	
-	Text("Shift16: %04X", taito8080.shift_reg);
+	Text("Shift16: %04X", taito8080.shift_register.data);
 	
 	Separator();
 	Text("Cycles: %d", taito8080.cpu.cycles);

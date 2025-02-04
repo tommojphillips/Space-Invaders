@@ -58,26 +58,22 @@ int taito8080_load_romset(int i) {
 	return 0;
 }
 int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_size) {
-	if (read_file_into_buffer(filename, taito8080.mm.rom, ROM_SIZE, offset, expected_size) != 0) {
-		return 1;
-	}
-	return 0;
+	return read_file_into_buffer(filename, taito8080.mm.rom, 0x10000, offset, expected_size);
 }
 
 #define B_START    taito8080.mm.banks[i]->start
 #define B_SIZE     taito8080.mm.banks[i]->size
-#define B_OFFSET   taito8080.mm.banks[i]->offset
 #define B_END      (B_START + B_SIZE)
-#define B_MASK     (B_SIZE - 1)
+#define B_MASK     (B_END - 1)
 #define B_WRITABLE ((taito8080.mm.banks[i]->flags & MM_FLAG_WRITE_PROTECTED) != 0)
 #define B_MIRRORED ((taito8080.mm.banks[i]->flags & MM_FLAG_MIRROR) == 0)
-#define B_PTR      taito8080.mm.bank_ptrs[taito8080.mm.banks[i]->type]
+#define B_PTR      taito8080.mm.memory
 #define B_COUNT    taito8080.mm.bank_count
 
 uint8_t taito8080_read_byte(uint16_t address) {
 	for (int i = 0; i < B_COUNT; ++i) {
 		if ((address < B_END || B_MIRRORED) && address >= B_START) {
-			return *(uint8_t*)(B_PTR + B_OFFSET + (address & B_MASK));
+			return *(uint8_t*)(B_PTR + (address & B_MASK));
 		}
 	}
 	return 0;
@@ -85,14 +81,15 @@ uint8_t taito8080_read_byte(uint16_t address) {
 void taito8080_write_byte(uint16_t address, uint8_t value) {
 	for (int i = 0; i < B_COUNT; ++i) {
 		if (B_WRITABLE && (address < B_END || B_MIRRORED) && address >= B_START) {
-			*(uint8_t*)(B_PTR + B_OFFSET + (address & B_MASK)) = value;
+			*(uint8_t*)(B_PTR + (address & B_MASK)) = value;
+			return;
 		}
 	}
 }
 
 void push_word(I8080* cpu, uint16_t value);
 
-void taito8080_interrupt(uint8_t rst_num) {
+static void taito8080_interrupt(uint8_t rst_num) {
 	/* process cpu interrupt */
 	if (taito8080.cpu.flags.interrupt) {
 		taito8080.cpu.flags.interrupt = 0;
@@ -119,8 +116,7 @@ void taito8080_tick(uint32_t cycles) {
 }
 void taito8080_reset() {
 	i8080_reset(&taito8080.cpu);
-	taito8080.shift_amount = 0;
-	taito8080.shift_reg = 0;
+	mb14241_reset(&taito8080.shift_register);
 }
 void taito8080_update() {
 
@@ -146,27 +142,22 @@ void taito8080_vblank() {
 }
 
 int taito8080_init() {
-	taito8080.mm.rom = (uint8_t*)malloc(ROM_SIZE);
-	if (taito8080.mm.rom == NULL) {
-		printf("Failed to allocate ROM\n");
+	taito8080.mm.memory = (uint8_t*)malloc(0x10000);
+	if (taito8080.mm.memory == NULL) {
+		printf("Failed to allocate Memory\n");
 		return 1;
 	}
-	memset(taito8080.mm.rom, 0, ROM_SIZE);
-	taito8080.mm.rom_size = ROM_SIZE;
+	memset(taito8080.mm.memory, 0, 0x10000);
+	taito8080.mm.memory_size = 0x10000;
 
-	taito8080.mm.ram = (uint8_t*)malloc(RAM_SIZE + VIDEO_SIZE);
-	if (taito8080.mm.ram == NULL) {
-		printf("Failed to allocate RAM\n");
-		return 1;
-	}
-	memset(taito8080.mm.ram, 0, RAM_SIZE + VIDEO_SIZE);
-	taito8080.mm.ram_size = RAM_SIZE;
+	taito8080.mm.rom = (taito8080.mm.memory);
+	taito8080.mm.rom_size = 0x2000;
 
-	taito8080.mm.video = (taito8080.mm.ram + RAM_SIZE);
-	taito8080.mm.video_size = VIDEO_SIZE;
+	taito8080.mm.ram = (taito8080.mm.memory + 0x2000);
+	taito8080.mm.ram_size = 0x0400;
 
-	taito8080.mm.bank_ptrs[MM_TYPE_ROM] = taito8080.mm.rom;
-	taito8080.mm.bank_ptrs[MM_TYPE_RAM] = taito8080.mm.ram;
+	taito8080.mm.video = (taito8080.mm.ram + 0x0400);
+	taito8080.mm.video_size = 0x1C00;
 
 	i8080_init(&taito8080.cpu);
 	taito8080.cpu.read_byte = taito8080_read_byte;
@@ -182,12 +173,10 @@ int taito8080_init() {
 	return 0;
 }
 void taito8080_destroy() {
-	if (taito8080.mm.rom != NULL) {
-		free(taito8080.mm.rom);
+	if (taito8080.mm.memory != NULL) {
+		free(taito8080.mm.memory);
+		taito8080.mm.memory = NULL;
 		taito8080.mm.rom = NULL;
-	}
-	if (taito8080.mm.ram != NULL) {
-		free(taito8080.mm.ram);
 		taito8080.mm.ram = NULL;
 		taito8080.mm.video = NULL;
 	}
@@ -202,8 +191,7 @@ void taito8080_save_state() {
 		return;
 	}
 	fwrite(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
-	fwrite(&taito8080.shift_amount, 1, 1, file);
-	fwrite(&taito8080.shift_reg, 1, 2, file);
+	fwrite(&taito8080.shift_register, 1, sizeof(MB14241), file);
 	fwrite(&taito8080.io_output, 1, sizeof(OUTPUT_PORT), file);
 	fwrite(&taito8080.cpu, 1, sizeof(I8080), file);
 	fclose(file);
@@ -218,8 +206,7 @@ void taito8080_load_state() {
 	}
 
 	fread(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
-	fread(&taito8080.shift_amount, 1, 1, file);
-	fread(&taito8080.shift_reg, 1, 2, file);
+	fread(&taito8080.shift_register, 1, sizeof(MB14241), file);
 	fread(&taito8080.io_output, 1, sizeof(OUTPUT_PORT), file);
 
 	I8080 c = { 0 };

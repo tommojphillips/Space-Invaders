@@ -24,28 +24,26 @@ typedef struct {
 #define MM_FLAG_WRITE_PROTECTED 2
 #define MM_FLAG_MIRROR          3
 
-#define MM_TYPE_ROM  			0
-#define MM_TYPE_RAM             1
-#define MM_TYPES                2
-
 typedef struct {
 	uint16_t start;
-	uint16_t offset;
 	uint16_t size;
 	uint8_t flags;
-	uint8_t type;
 } MM;
 
 typedef struct {
+	uint8_t* memory;
+	uint32_t memory_size;
+
 	uint8_t* rom;
 	uint32_t rom_size;
+
 	uint8_t* ram;
 	uint32_t ram_size;
+
 	uint8_t* video;
 	uint32_t video_size;
 
 	const MM* const* banks;
-	uint8_t* bank_ptrs[MM_TYPES];
 	int bank_count;
 } MEMORY_MAP;
 
