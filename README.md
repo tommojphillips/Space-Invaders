@@ -1,23 +1,28 @@
 ## Intel 8080 Space Invaders Emulator
 
-An Emulator for The Original 1978 Space Invaders Arcade Machine. Designed for Windows, written in C using SDL2 for renderering and imgui for a GUI.
+An Emulator for The Original 1978 Space Invaders Arcade Machine.
+Written in C using SDL2 for renderering and imgui for a GUI.
+The emulator is capable of runnning a few different arcade machines: Space Invaders, Lunar Rescue, Balloon Bomber, Space Invaders pt2, Space Laser
 
 Space Invaders: ( invaders.zip )
 
-![invaders](https://github.com/user-attachments/assets/360944e5-5b22-4da8-905c-9fee163ca034)
+![invaders_470_540](https://github.com/user-attachments/assets/4dd6c515-b1f5-4632-9761-733ad9d67b46)
 
 Lunar Rescue: ( lrescue.zip )
 
-![lrescue](https://github.com/user-attachments/assets/37d55208-01be-45a9-b8e8-df3a649ea619)
+![lrescue_470_540](https://github.com/user-attachments/assets/c25fc147-197a-47ec-a009-612686c928b1)
 
-Ball Bomber: (ballbomb.zip)
+Balloon Bomber: (ballbomb.zip)
 
-![ballbomb](https://github.com/user-attachments/assets/f8ed11c6-f0a4-4ee8-ae68-fe46b5aee8c5)
+![ballbomb_470_540](https://github.com/user-attachments/assets/acb352f5-e611-4457-995e-e511894af90a)
 
 Space Invaders Pt2 (invadpt2.zip)
 
-![invaderspt2](https://github.com/user-attachments/assets/c4fd6a5d-1764-4379-b523-e6349206dc8d)
+![invaderspt2_470_540](https://github.com/user-attachments/assets/cd913aad-b211-4de7-aabd-1fa5563c54d8)
 
+Space Laser (spclaser.zip
+
+![space_laser_470_540](https://github.com/user-attachments/assets/ba478b46-e1a0-4613-9188-1ce54bd4154e)
 
 ---
 
