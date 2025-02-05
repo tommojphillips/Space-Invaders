@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 		emu.machine->update();
 
 		if (16.666f < render_elapsed_time) {
-			render_elapsed_time -= 16.666f;
+			render_elapsed_time = 0; //-= 16.666f;
 			sdl_render();
 
 			if (emu.machine->vblank) {

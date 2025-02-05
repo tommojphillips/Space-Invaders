@@ -13,17 +13,17 @@ const MM lrescue_rom_bank1 = {
 	.size   = 0x2000,
 	.flags  = MM_FLAG_WRITE_PROTECTED
 };
-const MM lrescue_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
 const MM lrescue_rom_bank2 = {
 	.start  = 0x4000,
 	.size   = 0x1000,
 	.flags  = MM_FLAG_WRITE_PROTECTED
 };
-const MM* const lrescue_banks[3] = { &lrescue_rom_bank1, &lrescue_ram, &lrescue_rom_bank2 };
+const MM lrescue_ram = {
+	.start  = 0x2000,
+	.size   = 0x2000,
+	.flags  = MM_FLAG_MIRROR
+};
+const MM* const lrescue_banks[3] = { &lrescue_rom_bank1, &lrescue_rom_bank2, &lrescue_ram };
 
 uint8_t lrescue_read_io(uint8_t port) {
 	switch (port) {

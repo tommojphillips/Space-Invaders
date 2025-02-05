@@ -28,22 +28,22 @@
 #define RAM_SIZE   0x0400
 #define VIDEO_SIZE 0x1C00
 
-#define ROMSET_INVADERS		0
-#define ROMSET_INVADERS_PT2	1
-#define ROMSET_LRESCUE		2
-#define ROMSET_BALLBOMBER	3
-#define ROMSET_SPACE_LASER	4
-#define ROMSET_GALX_WARS	5
-#define ROMSET_SOL_FIGHT	6
+#define ROMSET_INVADERS     0
+#define ROMSET_INVADERS_PT2 1
+#define ROMSET_LRESCUE      2
+#define ROMSET_BALLBOMBER   3
+#define ROMSET_SPACE_LASER  4
+#define ROMSET_GALX_WARS    5
+#define ROMSET_SOL_FIGHT    6
 
 const ROMSET taito8080_romsets[] = {
-	{ ROMSET_INVADERS,		"space invaders",		invaders_init		},
-	{ ROMSET_INVADERS_PT2,	"space invaders pt2",	invaderspt2_init	},
-	{ ROMSET_LRESCUE,		"lunar rescue",			lrescue_init		},
-	{ ROMSET_BALLBOMBER,	"ballon bomber",		ballbomb_init		},
-	{ ROMSET_SPACE_LASER,	"space laser",			spclaser_init		},
-	{ ROMSET_GALX_WARS,		"galaxy wars",			galxwars_init		},
-	{ ROMSET_SOL_FIGHT,		"sol fight",			solfight_init		},
+	{ ROMSET_INVADERS,      "space invaders",       invaders_init		},
+	{ ROMSET_INVADERS_PT2,  "space invaders pt2",   invaderspt2_init	},
+	{ ROMSET_LRESCUE,       "lunar rescue",         lrescue_init		},
+	{ ROMSET_BALLBOMBER,    "ballon bomber",        ballbomb_init		},
+	{ ROMSET_SPACE_LASER,   "space laser",          spclaser_init		},
+	{ ROMSET_GALX_WARS,     "galaxy wars",          galxwars_init		},
+	{ ROMSET_SOL_FIGHT,     "sol fight",            solfight_init		},
 };
 
 TAITO8080 taito8080 = { 0 };

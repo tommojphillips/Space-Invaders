@@ -13,17 +13,17 @@ const MM solfight_rom_bank1 = {
 	.size   = 0x2000,
 	.flags  = MM_FLAG_WRITE_PROTECTED
 };
+const MM solfight_rom_bank2 = {
+	.start  = 0x4000,
+	.size   = 0x1000,
+	.flags  = MM_FLAG_WRITE_PROTECTED
+};
 const MM solfight_ram = {
 	.start  = 0x2000,
 	.size   = 0x2000,
 	.flags  = MM_FLAG_MIRROR
 };
-const MM solfight_rom_bank2 = {
-	.start  = 0x4000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
-};
-const MM* const  solfight_banks[3] = { &solfight_rom_bank1, &solfight_ram, &solfight_rom_bank2 };
+const MM* const  solfight_banks[3] = { &solfight_rom_bank1, &solfight_rom_bank2, &solfight_ram };
 
 uint8_t solfight_read_io(uint8_t port) {
 	switch (port) {

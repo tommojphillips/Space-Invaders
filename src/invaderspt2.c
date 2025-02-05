@@ -13,17 +13,17 @@ const MM invaderspt2_rom_bank1 = {
 	.size   = 0x2000,
 	.flags  = MM_FLAG_WRITE_PROTECTED
 };
-const MM invaderspt2_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
 const MM invaderspt2_rom_bank2 = {
 	.start  = 0x4000,
 	.size   = 0x1000,
 	.flags  = MM_FLAG_WRITE_PROTECTED
 };
-const MM* const invaderspt2_banks[3] = { &invaderspt2_rom_bank1, &invaderspt2_ram, &invaderspt2_rom_bank2 };
+const MM invaderspt2_ram = {
+	.start  = 0x2000,
+	.size   = 0x2000,
+	.flags  = MM_FLAG_MIRROR
+};
+const MM* const invaderspt2_banks[3] = { &invaderspt2_rom_bank1, &invaderspt2_rom_bank2, &invaderspt2_ram };
 
 uint8_t invaderspt2_read_io(uint8_t port) {
 	switch (port) {
