@@ -4,13 +4,13 @@ An Emulator for The Original 1978 Space Invaders Arcade Machine.
 Written in C using SDL2 for renderering and imgui for a GUI.
 The emulator is capable of runnning a few different arcade machines: Space Invaders, Lunar Rescue, Balloon Bomber, Space Invaders pt2, Space Laser
 
-| Space Invaders ( invaders.zip ) | Lunar Rescue ( lrescue.zip ) |
-| -                                | -                             |
-| ![invaders_470_540](https://github.com/user-attachments/assets/4dd6c515-b1f5-4632-9761-733ad9d67b46) | ![lrescue_470_540](https://github.com/user-attachments/assets/c25fc147-197a-47ec-a009-612686c928b1)  |
+ - [Input](#input)
+ - [Loading ROMSETS](#changing-romsets)
+ - [Building](#building)
 
-| Balloon Bomber ( ballbomb.zip ) | Space Invaders Pt2 ( invadpt2.zip ) | Space Laser ( spclaser.zip ) |
-| -                              | -                                 |   -                        |
-| ![ballbomb_470_540](https://github.com/user-attachments/assets/acb352f5-e611-4457-995e-e511894af90a) | ![invaderspt2_470_540](https://github.com/user-attachments/assets/cd913aad-b211-4de7-aabd-1fa5563c54d8)  | ![space_laser_470_540](https://github.com/user-attachments/assets/ba478b46-e1a0-4613-9188-1ce54bd4154e) |
+| Space Invaders - invaders.zip | Lunar Rescue - lrescue.zip | Balloon Bomber - ballbomb.zip | Space Invaders Pt2 - invadpt2.zip | Space Laser - spclaser.zip |
+| -                             | -                          |-                              | -                                 |   -                        |
+| ![invaders_470_540](https://github.com/user-attachments/assets/4dd6c515-b1f5-4632-9761-733ad9d67b46) | ![lrescue_470_540](https://github.com/user-attachments/assets/c25fc147-197a-47ec-a009-612686c928b1)  | ![ballbomb_470_540](https://github.com/user-attachments/assets/acb352f5-e611-4457-995e-e511894af90a) | ![invaderspt2_470_540](https://github.com/user-attachments/assets/cd913aad-b211-4de7-aabd-1fa5563c54d8)  | ![space_laser_470_540](https://github.com/user-attachments/assets/ba478b46-e1a0-4613-9188-1ce54bd4154e) |
 
 ---
 
@@ -60,6 +60,15 @@ A Windows binary is available for download on the releases page. See: [Releases]
          | - lrescue.5
          | - lrescue.6
 ```
+
+### Changing ROMSETS:
+
+ 1.) Open the menu using `Esc`
+ 
+ 2.) Select the drop down menu and choose a romset.
+
+![Screenshot 2025-02-05 205313](https://github.com/user-attachments/assets/72a5defc-9057-4d44-a6c2-195882728b04)
+
 ---
 
 ## Building
