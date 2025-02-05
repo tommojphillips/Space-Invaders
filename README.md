@@ -4,9 +4,9 @@ An Emulator for The Original 1978 Space Invaders Arcade Machine.
 Written in C using SDL2 for renderering and imgui for a GUI.
 The emulator is capable of runnning a few different arcade machines: Space Invaders, Lunar Rescue, Balloon Bomber, Space Invaders pt2, Space Laser
 
- - [Input](https://github.com/tommojphillips/Space-Invaders/edit/master/README.md#input)
- - [Loading ROMSETS](https://github.com/tommojphillips/Space-Invaders/edit/master/README.md#changing-romsets)
- - [Building](https://github.com/tommojphillips/Space-Invaders/edit/master/README.md#building)
+ - [Input](https://github.com/tommojphillips/Space-Invaders/master/README.md#input)
+ - [Loading ROMSETS](https://github.com/tommojphillips/Space-Invaders/master/README.md#changing-romsets)
+ - [Building](https://github.com/tommojphillips/Space-Invaders/master/README.md#building)
 
 | Space Invaders - invaders.zip | Lunar Rescue - lrescue.zip | Balloon Bomber - ballbomb.zip | Space Invaders Pt2 - invadpt2.zip | Space Laser - spclaser.zip |
 | -                             | -                          |-                              | -                                 |   -                        |
