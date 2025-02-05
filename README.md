@@ -1,32 +1,20 @@
-## Intel 8080 Space Invaders Emulator
+# Intel 8080 Space Invaders Emulator
 
 An Emulator for The Original 1978 Space Invaders Arcade Machine.
 Written in C using SDL2 for renderering and imgui for a GUI.
 The emulator is capable of runnning a few different arcade machines: Space Invaders, Lunar Rescue, Balloon Bomber, Space Invaders pt2, Space Laser
 
-Space Invaders: ( invaders.zip )
+| Space Invaders ( invaders.zip ) | Lunar Rescue ( lrescue.zip ) |
+| -                                | -                             |
+| ![invaders_470_540](https://github.com/user-attachments/assets/4dd6c515-b1f5-4632-9761-733ad9d67b46) | ![lrescue_470_540](https://github.com/user-attachments/assets/c25fc147-197a-47ec-a009-612686c928b1)  |
 
-![invaders_470_540](https://github.com/user-attachments/assets/4dd6c515-b1f5-4632-9761-733ad9d67b46)
-
-Lunar Rescue: ( lrescue.zip )
-
-![lrescue_470_540](https://github.com/user-attachments/assets/c25fc147-197a-47ec-a009-612686c928b1)
-
-Balloon Bomber: (ballbomb.zip)
-
-![ballbomb_470_540](https://github.com/user-attachments/assets/acb352f5-e611-4457-995e-e511894af90a)
-
-Space Invaders Pt2 (invadpt2.zip)
-
-![invaderspt2_470_540](https://github.com/user-attachments/assets/cd913aad-b211-4de7-aabd-1fa5563c54d8)
-
-Space Laser (spclaser.zip
-
-![space_laser_470_540](https://github.com/user-attachments/assets/ba478b46-e1a0-4613-9188-1ce54bd4154e)
+| Balloon Bomber ( ballbomb.zip ) | Space Invaders Pt2 ( invadpt2.zip ) | Space Laser ( spclaser.zip ) |
+| -                              | -                                 |   -                        |
+| ![ballbomb_470_540](https://github.com/user-attachments/assets/acb352f5-e611-4457-995e-e511894af90a) | ![invaderspt2_470_540](https://github.com/user-attachments/assets/cd913aad-b211-4de7-aabd-1fa5563c54d8)  | ![space_laser_470_540](https://github.com/user-attachments/assets/ba478b46-e1a0-4613-9188-1ce54bd4154e) |
 
 ---
 
-#### Input
+## Input
 
 Both player 1 and player 2 controls are mapped to the same keys.
 
@@ -52,15 +40,37 @@ A Windows binary is available for download on the releases page. See: [Releases]
 
 ---
 
-### Dependencies 
- - IMGUI v1.91.6 - https://github.com/ocornut/imgui/releases/tag/v1.91.6
- - SDL2 v2.30.10 - https://github.com/libsdl-org/SDL/releases/tag/release-2.30.10 
+## How to use
+ This project uses the same names for the roms as the MAME project. Roms are loaded from a directory named after their MAME name. eg.
 
+```
+ Space-Invaders.exe
+
+ invaders\
+         | - invaders.e
+         | - invaders.f
+         | - invaders.g
+         | - invaders.h
+
+ lrescue\
+         | - lrescue.1
+         | - lrescue.2
+         | - lrescue.3
+         | - lrescue.4
+         | - lrescue.5
+         | - lrescue.6
+```
 ---
 
-### Building
+## Building
 
 The project is built in Visual Studio 2022
+
+#### Dependencies 
+ - IMGUI v1.91.6 - https://github.com/ocornut/imgui/releases/tag/v1.91.6
+ - SDL2 v2.30.10 - https://github.com/libsdl-org/SDL/releases/tag/release-2.30.10
+
+---
 
   1. Clone the repo  
   
