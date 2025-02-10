@@ -18,7 +18,7 @@
 const MACHINE machines[] = {
 	{ 
 	  .id           = CPM,
-	  .name         = "CP/M i8080",
+	  .name         = "CP/M-80",
 	  .init         = cpm_init,
 	  .destroy      = cpm_destroy,
 	  .reset        = cpm_reset,
@@ -28,7 +28,7 @@ const MACHINE machines[] = {
 	  .load_state   = NULL,
 	  .load_romset  = cpm_load_test,
 	  .romsets      = cpm_tests,
-	  .romset_count = 5
+	  .romset_count = 7
 	},
 	
 	{ 
