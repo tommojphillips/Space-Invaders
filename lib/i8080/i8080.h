@@ -68,11 +68,6 @@ void i8080_init(I8080* cpu);
 void i8080_reset(I8080* cpu);
 int i8080_execute(I8080* cpu);
 
-/*uint8_t i8080_read_byte(I8080* cpu, uint16_t address);
-void i8080_write_byte(I8080* cpu, uint16_t address, uint8_t value);
-uint8_t i8080_read_io(I8080* cpu, uint8_t port);
-void i8080_write_io(I8080* cpu, uint8_t port, uint8_t value);*/
-
 #ifdef __cplusplus
 };
 #endif

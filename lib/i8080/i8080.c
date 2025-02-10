@@ -7,16 +7,9 @@
 #include "i8080.h"
 
 #define CYCLES(x) (cpu->cycles += x)
-
 #define PC cpu->pc
-#define PCH (cpu->pc >> 8)
-#define PCL (cpu->pc & 0xFF)
-
 #define SP cpu->sp
-#define SPH (cpu->sp >> 8)
-#define SPL (cpu->sp & 0xFF)
 
-#define A  cpu->registers[REG_A]
 #define B  cpu->registers[REG_B]
 #define C  cpu->registers[REG_C]
 #define D  cpu->registers[REG_D]
@@ -24,6 +17,7 @@
 #define H  cpu->registers[REG_H]
 #define L  cpu->registers[REG_L]
 #define F  cpu->registers[REG_FLAGS]
+#define A  cpu->registers[REG_A]
 
 #define SF cpu->status_flags->s
 #define CF cpu->status_flags->c
@@ -41,12 +35,13 @@
 #define WRITE_IO(port, value) cpu->write_io(port, value)
 
 #define READ_WORD(address) ((READ_BYTE((address) + 1) << 8) | READ_BYTE(address))
-#define READ_ADDRESS READ_WORD(PC+1);
-#define READ_STACK_ADDRESS READ_WORD(SP)
 
-#define SET_SF(x) SF = (((x) & 0x80) >> 7)
-#define SET_ZF(x) ZF = ((x) == 0) ? 1 : 0
-#define SET_PF(x) PF = cal_parity_8bit(x)
+#define SET_SF(r) SF = ((r) & 0x80) >> 7
+#define SET_ZF(r) ZF = (r) == 0
+#define SET_PF(r) PF = cal_parity_8bit(r)
+#define SET_CF(r) CF = (r) > 0xFF
+#define SET_AF_ADD(x,y,r) AF = (((x) ^ (y) ^ (r)) & 0x10) == 0x10
+#define SET_AF_SUB(x,y,r) AF = (((x) ^ (y) ^ (r)) & 0x10) == 0
 
 static uint8_t cal_parity_8bit(uint8_t value) {
 	value ^= value >> 4;
@@ -56,76 +51,71 @@ static uint8_t cal_parity_8bit(uint8_t value) {
 }
 
 static void alu_and(I8080* cpu, uint8_t x2) {
-	uint8_t tmp = (A & x2);
-	AF = (((A | x2) & 0x08) != 0) ? 1 : 0;
-	CF = 0;	
-	SET_ZF(tmp);
-	SET_SF(tmp);
-	SET_PF(tmp);
-	A = tmp;
+	AF = (((A | x2) & 0x08) != 0);
+	CF = 0;
+	A &= x2;
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 static void alu_xor(I8080* cpu, uint8_t x2) {
-	uint8_t tmp = (A ^ x2);
 	AF = 0;
 	CF = 0;
-	SET_ZF(tmp);
-	SET_SF(tmp);
-	SET_PF(tmp);
-	A = tmp;
+	A ^= x2;
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 static void alu_or(I8080* cpu, uint8_t x2) {
-	uint8_t tmp = (A | x2);
 	AF = 0;
 	CF = 0;
-	SET_ZF(tmp);
-	SET_SF(tmp);
-	SET_PF(tmp);
-	A = tmp;
+	A |= x2;
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 
 static void alu_add(I8080* cpu, uint8_t x2) {
 	uint16_t tmp = (A + x2);
-	AF = (((A & 0x0F) + (x2 & 0x0F)) & 0x10) == 0x10 ? 1 : 0;
-	CF = (tmp > 0xFF) ? 1 : 0;
-	SET_ZF(tmp & 0xFF);
-	SET_SF(tmp & 0xFF);
-	SET_PF(tmp & 0xFF);
+	SET_AF_ADD(A,x2,tmp);
+	SET_CF(tmp);
 	A = (tmp & 0xFF);
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 static void alu_adc(I8080* cpu, uint8_t x2) {
-	uint16_t x3 = x2 + CF;
-	uint16_t tmp = (A + x3);
-	AF = (((A & 0x0F) + (x3 & 0x0F)) & 0x10) == 0x10 ? 1 : 0;
-	CF = (tmp > 0xFF) ? 1 : 0;
-	SET_ZF(tmp & 0xFF);
-	SET_SF(tmp & 0xFF);
-	SET_PF(tmp & 0xFF);
+	uint16_t tmp = (A + x2 + CF);
+	SET_AF_ADD(A, x2, tmp);
+	SET_CF(tmp);
 	A = (tmp & 0xFF);
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 
 static void alu_sub(I8080* cpu, uint8_t x2) {
 	uint16_t tmp = (A - x2);
-	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;
-	CF = (A < x2) ? 1 : 0;
-	SET_ZF(tmp & 0xFF);
-	SET_SF(tmp & 0xFF);
-	SET_PF(tmp & 0xFF);
+	SET_AF_SUB(A, x2, tmp);
+	SET_CF(tmp);
 	A = (tmp & 0xFF);
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 static void alu_sbb(I8080* cpu, uint8_t x2) {
-	uint8_t x3 = (x2 + CF);
-	uint16_t tmp = (A - x3);
-	AF = (((A ^ x3 ^ tmp) & 0x10) == 0) ? 1 : 0;
-	CF = (A < x3) ? 1 : 0;
-	SET_ZF(tmp & 0xFF);
-	SET_SF(tmp & 0xFF);
-	SET_PF(tmp & 0xFF);
+	uint16_t tmp = (A - x2 - CF);
+	SET_AF_SUB(A, x2, tmp);
+	SET_CF(tmp);
 	A = (tmp & 0xFF);
+	SET_ZF(A);
+	SET_SF(A);
+	SET_PF(A);
 }
 static void alu_cmp(I8080* cpu, uint8_t x2) {
 	uint16_t tmp = (A - x2);
-	AF = (((A ^ x2 ^ tmp) & 0x10) == 0) ? 1 : 0;
-	CF = (A < x2) ? 1 : 0;
+	SET_AF_SUB(A, x2, tmp);
+	SET_CF(tmp);
 	SET_ZF(tmp & 0xFF);
 	SET_SF(tmp & 0xFF);
 	SET_PF(tmp & 0xFF);
@@ -141,17 +131,18 @@ void pop_byte(I8080* cpu, uint8_t* value) {
 }
 
 void push_word(I8080* cpu, uint16_t value) {
-	WRITE_BYTE(cpu->sp - 1, (value >> 8) & 0xFF);
-	WRITE_BYTE(cpu->sp - 2, value & 0xFF);
-	cpu->sp -= 2;
+	SP -= 1;
+	WRITE_BYTE(SP, (value >> 8) & 0xFF);
+	SP -= 1;
+	WRITE_BYTE(SP, value & 0xFF);
 }
 void pop_word(I8080* cpu, uint16_t* value) {
-	*value = READ_STACK_ADDRESS;
+	*value = READ_WORD(SP);
 	SP += 2;
 }
 
 static void call(I8080* cpu) {
-	uint16_t call_address = READ_ADDRESS;
+	uint16_t call_address = READ_WORD(PC + 1);
 	uint16_t return_address = PC + 3;
 	push_word(cpu, return_address);
 	PC = call_address;
@@ -160,10 +151,6 @@ static void ret(I8080* cpu) {
 	uint16_t return_address;
 	pop_word(cpu, &return_address);
 	PC = return_address;
-}
-static void jmp(I8080* cpu) {
-	uint16_t address = READ_ADDRESS;
-	PC = address;
 }
 
 /* OPCODES */
@@ -340,13 +327,13 @@ static void RPO(I8080* cpu) {
 
 static void JMP(I8080* cpu) {
 	/* Jump */
-	jmp(cpu);
+	PC = READ_WORD(PC + 1);
 	CYCLES(10);
 }
 static void JC(I8080* cpu) {
 	/* Jump carry */
 	if (CF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -356,7 +343,7 @@ static void JC(I8080* cpu) {
 static void JNC(I8080* cpu) {
 	/* Jump not carry */
 	if (!CF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -366,7 +353,7 @@ static void JNC(I8080* cpu) {
 static void JZ(I8080* cpu) {
 	/* Jump zero */
 	if (ZF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -376,7 +363,7 @@ static void JZ(I8080* cpu) {
 static void JNZ(I8080* cpu) {
 	/* Jump not zero */
 	if (!ZF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -386,7 +373,7 @@ static void JNZ(I8080* cpu) {
 static void JP(I8080* cpu) {
 	/* Jump positive */
 	if (!SF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -396,7 +383,7 @@ static void JP(I8080* cpu) {
 static void JM(I8080* cpu) {
 	/* Jump minus */
 	if (SF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -406,7 +393,7 @@ static void JM(I8080* cpu) {
 static void JPE(I8080* cpu) {
 	/* Jump parity even */
 	if (PF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -416,7 +403,7 @@ static void JPE(I8080* cpu) {
 static void JPO(I8080* cpu) {
 	/* Jump parity odd */
 	if (!PF) {
-		jmp(cpu);
+		PC = READ_WORD(PC + 1);
 	}
 	else {
 		PC += 3;
@@ -460,7 +447,7 @@ static void LXI_HL(I8080* cpu) {
 }
 static void LXI_SP(I8080* cpu) {
 	/* Load 16-bit IMM into SP */
-	SP = READ_ADDRESS;
+	SP = READ_WORD(PC + 1);
 	PC += 3;
 	CYCLES(10);
 }
@@ -489,7 +476,7 @@ static void PUSH_HL(I8080* cpu) {
 static void PUSH_PSW(I8080* cpu) {
 	/* Push PSW */
 
-	/* restore always 1, 0 flags in FLAGS */
+	/* Restore always 1, 0 flags in FLAGS */
 	cpu->status_flags->_zero1 = 0;
 	cpu->status_flags->_zero2 = 0;
 	cpu->status_flags->_one = 1;
@@ -537,14 +524,14 @@ static void POP_PSW(I8080* cpu) {
 
 static void STA(I8080* cpu) {
 	/* Store A to [address] */
-	uint16_t address = READ_ADDRESS;
+	uint16_t address = READ_WORD(PC + 1);
 	WRITE_BYTE(address, A);
 	PC += 3;
 	CYCLES(13);
 }
 static void LDA(I8080* cpu) {
 	/* Load A from [address] */
-	uint16_t address = READ_ADDRESS;
+	uint16_t address = READ_WORD(PC + 1);
 	A = READ_BYTE(address);
 	PC += 3;
 	CYCLES(13);
@@ -552,26 +539,23 @@ static void LDA(I8080* cpu) {
 
 static void XCHG(I8080* cpu) {
 	/* Exchange HL with DE */
-	uint8_t l = L;
-	uint8_t h = H;
-
-	H = D;
+	uint8_t t = L;
 	L = E;
-
-	D = h;
-	E = l;
-
+	E = t;
+	t = H;
+	H = D;
+	D = t;
 	PC += 1;
 	CYCLES(4);
 }
 static void XTHL(I8080* cpu) {
 	/* Exchange HL with top of stack */
-	uint8_t l = L;
-	uint8_t h = H;
+	uint8_t t = L;
 	L = READ_BYTE(SP);
+	WRITE_BYTE(SP, t);
+	t = H;
 	H = READ_BYTE(SP+1);
-	WRITE_BYTE(SP, l);
-	WRITE_BYTE(SP+1, h);
+	WRITE_BYTE(SP+1, t);	
 	PC += 1;
 	CYCLES(18);
 }
@@ -590,9 +574,7 @@ static void PCHL(I8080* cpu) {
 
 static void DAD_BC(I8080* cpu) {
 	/* Add BC to HL */
-	uint16_t hl = (H << 8) | L;
-	uint16_t bc = (B << 8) | C;
-	uint32_t tmp = hl + bc;
+	uint32_t tmp = ((H << 8) | L) + ((B << 8) | C);
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -601,9 +583,7 @@ static void DAD_BC(I8080* cpu) {
 }
 static void DAD_DE(I8080* cpu) {
 	/* Add DE to HL */
-	uint16_t hl = (H << 8) | L;
-	uint16_t de = (D << 8) | E;
-	uint32_t tmp = hl + de;
+	uint32_t tmp = ((H << 8) | L) + ((D << 8) | E);
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -612,8 +592,7 @@ static void DAD_DE(I8080* cpu) {
 }
 static void DAD_HL(I8080* cpu) {
 	/* Add HL to HL; Shift HL left 1 */
-	uint16_t hl = (H << 8) | L;
-	uint32_t tmp = hl << 0x1;
+	uint32_t tmp = ((H << 8) | L) << 0x1;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -622,8 +601,7 @@ static void DAD_HL(I8080* cpu) {
 }
 static void DAD_SP(I8080* cpu) {
 	/* Add SP to HL */
-	uint16_t hl = (H << 8) | L;
-	uint32_t tmp = hl + SP;
+	uint32_t tmp = ((H << 8) | L) + SP;
 	L = tmp & 0xFF;
 	H = (tmp >> 8) & 0xFF;
 	CF = (tmp > 0xFFFF);
@@ -668,7 +646,7 @@ static void MOV_R_R(I8080* cpu) {
 	CYCLES(5);
 }
 static void MOV_M_R(I8080* cpu) {
-	/* Move register to [HL] */
+	/* Move register to M */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = cpu->registers[SSS];
 	WRITE_BYTE(address, value);
@@ -676,7 +654,7 @@ static void MOV_M_R(I8080* cpu) {
 	CYCLES(7);
 }
 static void MOV_R_M(I8080* cpu) {
-	/* mov [HL] to register */
+	/* Move M to register */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
 	cpu->registers[DDD] = value;
@@ -723,7 +701,7 @@ static void DCR_R(I8080* cpu) {
 }
 
 static void INR_M(I8080* cpu) {
-	/* Increment [HL] */
+	/* Increment M */
 	uint16_t address = (H << 8) | L;
 	uint16_t tmp = READ_BYTE(address) + 1;
 	AF = (tmp & 0xF) == 0;
@@ -735,7 +713,7 @@ static void INR_M(I8080* cpu) {
 	CYCLES(10);
 }
 static void DCR_M(I8080* cpu) {
-	/* Decrement [HL] */
+	/* Decrement M */
 	uint16_t address = (H << 8) | L;
 	uint16_t tmp = READ_BYTE(address) - 1;
 	AF = !((tmp & 0xF) == 0xF);
@@ -839,7 +817,7 @@ static void ANA_M(I8080* cpu) {
 	CYCLES(7);
 }
 static void XRA_M(I8080* cpu) {
-	/* XOR A with [HL] */
+	/* XOR A with M */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
 	alu_xor(cpu, value);
@@ -847,7 +825,7 @@ static void XRA_M(I8080* cpu) {
 	CYCLES(7);
 }
 static void ORA_M(I8080* cpu) {
-	/* OR A with [HL] */
+	/* OR A with M */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address);
 	alu_or(cpu, value);
@@ -855,7 +833,7 @@ static void ORA_M(I8080* cpu) {
 	CYCLES(7);
 }
 static void CMP_M(I8080* cpu) {
-	/* CMP A with [HL] */
+	/* CMP A with M */
 	uint16_t address = (H << 8) | L;
 	uint8_t value = READ_BYTE(address); 
 	alu_cmp(cpu, value);
@@ -1032,7 +1010,7 @@ static void DCX_SP(I8080* cpu) {
 
 static void SHLD(I8080* cpu) {
 	/* Store HL to address */
-	uint16_t address = READ_ADDRESS;
+	uint16_t address = READ_WORD(PC + 1);
 	WRITE_BYTE(address, L);
 	WRITE_BYTE(address+1, H);
 	PC += 3;
@@ -1040,7 +1018,7 @@ static void SHLD(I8080* cpu) {
 }
 static void LHLD(I8080* cpu) {
 	/* Load HL from address */
-	uint16_t address = READ_ADDRESS;
+	uint16_t address = READ_WORD(PC + 1);
 	L = READ_BYTE(address);
 	H = READ_BYTE(address+1);
 	PC += 3;
@@ -1149,7 +1127,7 @@ void i8080_reset(I8080* cpu) {
 		cpu->registers[i] = 0;
 	}
 
-	/* restore always 1, 0 flags in F*/
+	/* Restore always 1, 0 flags in F*/
 	cpu->status_flags->_zero1 = 0;
 	cpu->status_flags->_zero2 = 0;
 	cpu->status_flags->_one = 1;
