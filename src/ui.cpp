@@ -2,10 +2,11 @@
 * GitHub: https:\\github.com\tommojphillips
 */
 
+#include <stdio.h>
+
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
-#include "imgui_memory_editor/imgui_memory_editor.h"
 using namespace ImGui;
 
 #include "ui.h"
@@ -48,9 +49,6 @@ using namespace ImGui;
 /* Imgui state */
 typedef struct {
 	ImGuiContext* context;
-	MemoryEditor* ram_editor;
-	MemoryEditor* rom_editor; 
-	MemoryEditor* video_editor; 
 	ImGuiIO* io;
 	char tmp_s[32];
 } IMGUI_STATE;
@@ -88,38 +86,15 @@ void imgui_create_renderer() {
 	}
 
 	StyleColorsDark();
-	//StyleColorsLight();
 
 	imgui.io = &GetIO();
 	imgui.io->FontGlobalScale = ui_state.window_scale;
-
-	static MemoryEditor ram_editor;
-	ram_editor.Open = ui_state.show_ram_window;
-	ram_editor.Cols = ui_state.cols_ram_window;
-	ram_editor.OptShowAscii = ui_state.ascii_ram_window;
-	ram_editor.GotoAddr = 0;
-	imgui.ram_editor = &ram_editor;
-
-	static MemoryEditor rom_editor;
-	rom_editor.Open = ui_state.show_rom_window;
-	rom_editor.Cols = ui_state.cols_rom_window;
-	rom_editor.OptShowAscii = ui_state.ascii_rom_window;
-	imgui.rom_editor = &rom_editor;
-
-	static MemoryEditor video_editor;
-	video_editor.Open = ui_state.show_video_window;
-	video_editor.Cols = ui_state.cols_video_window;
-	video_editor.OptShowAscii = ui_state.ascii_video_window;
-	imgui.video_editor = &video_editor;
 
 	ImGui_ImplSDL2_InitForSDLRenderer(sdl.game_window, sdl.game_renderer);
 	ImGui_ImplSDLRenderer2_Init(sdl.game_renderer);
 }
 
 void imgui_destroy() {
-
-	
-	/* Cleanup */
 	ImGui_ImplSDLRenderer2_Shutdown(); 
 	ImGui_ImplSDL2_Shutdown();
 	DestroyContext(imgui.context);
@@ -131,22 +106,7 @@ void imgui_update() {
 
 	if (ui_state.show_menu_window) {
 		menu_window();
-	}
-	else {
-
-		if (imgui.ram_editor->Open) {
-			imgui.ram_editor->DrawWindow("RAM (1K)", taito8080.mm.ram, 1024, 0);
-		}
-
-		if (imgui.rom_editor->Open) {
-			imgui.rom_editor->DrawWindow("ROM (8K)", taito8080.mm.rom, 8 * 1024, 0);
-		}
-
-		if (imgui.video_editor->Open) {
-			imgui.video_editor->DrawWindow("VIDEO (7K)", taito8080.mm.video, 7 * 1024, 0);
-		}
 	}	
-	
 	if (ui_state.show_debug_window) {
 		debug_window();
 	}
@@ -162,6 +122,7 @@ void imgui_update() {
 	if (ui_state.show_de_window) {
 		de_window();
 	}
+
 	Render();	
 	ImGui_ImplSDLRenderer2_RenderDrawData(GetDrawData(), sdl.game_renderer);
 }
@@ -174,22 +135,9 @@ void imgui_toggle_menu() {
 
 static void set_default_settings() {
 	ui_state.window_scale = 1.0f;
-
 	ui_state.show_menu_window = 0;
 	ui_state.show_debug_window = 0;
 	ui_state.show_dip_switch_window = 0;
-
-	ui_state.show_ram_window = 0;
-	ui_state.cols_ram_window = 16;
-	ui_state.ascii_ram_window = 0;
-
-	ui_state.show_rom_window = 0;
-	ui_state.cols_rom_window = 16;
-	ui_state.ascii_rom_window = 0;
-
-	ui_state.show_video_window = 0;
-	ui_state.cols_video_window = 16;
-	ui_state.ascii_video_window = 0;
 }
 
 static void decode_window() {
@@ -255,54 +203,15 @@ static void de_window() {
 }
 static void dip_switch_window() {
 
-	/*bool tmp = !taito8080.io_input.input2.extra_ship;
-	if (Checkbox("Extra ship at 1500", &tmp)) {
-		taito8080.io_input.input2.extra_ship = !tmp;
-	}
-	SameLine();
-	tmp = taito8080.io_input.input2.extra_ship;
-	if (Checkbox("Extra ship at 1000", &tmp)) {
-		taito8080.io_input.input2.extra_ship = tmp;
-	}
-
-	static int lives = 3;
-	Text("Lives: ");
-	SameLine();
-	if (SliderInt("###Lives", &lives, 3, 6)) {
-		switch (lives) {
-		case 3:
-			taito8080.io_input.input2.ship1 = 0;
-			taito8080.io_input.input2.ship2 = 0;
-			break;
-		case 4:
-			taito8080.io_input.input2.ship1 = 1;
-			taito8080.io_input.input2.ship2 = 0;
-			break;
-		case 5:
-			taito8080.io_input.input2.ship1 = 0;
-			taito8080.io_input.input2.ship2 = 1;
-			break;
-		case 6:
-			taito8080.io_input.input2.ship1 = 1;
-			taito8080.io_input.input2.ship2 = 1;
-			break;
-		}
-	}*/
-
-	dip_switch8(&taito8080.io_output.sound1, 0, "Sound1");
-	
+	dip_switch8(&taito8080.io_output.sound1, 0, "Sound1");	
 	Separator();
-	dip_switch8(&taito8080.io_output.sound2, 16, "Sound2");
-	
+	dip_switch8(&taito8080.io_output.sound2, 16, "Sound2");	
 	Separator();
-	dip_switch8(&taito8080.io_output.sound3, 32, "Sound3");
-	
+	dip_switch8(&taito8080.io_output.sound3, 32, "Sound3");	
 	Separator();
 	dip_switch8(&taito8080.io_input.input0, 48, "Input0");
-
 	Separator();
 	dip_switch8((uint8_t*)&taito8080.io_input.input1, 64, "Input1");
-
 	Separator();
 	dip_switch8((uint8_t*)&taito8080.io_input.input2, 96, "Input2");
 }
@@ -406,18 +315,6 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 	SameLine();
 	if (Button("Decode")) {
 		ui_state.show_decode_window ^= 1;
-	}
-	SameLine();
-	if (Button("RAM")) {
-		imgui.ram_editor->Open ^= 1;
-	}
-	SameLine();
-	if (Button("ROM")) {
-		imgui.rom_editor->Open ^= 1;
-	}
-	SameLine();
-	if (Button("Video")) {
-		imgui.video_editor->Open ^= 1;
 	}
 	SameLine();
 	if (Button("HL")) {
