@@ -22,7 +22,7 @@ typedef struct {
 
 #define MM_FLAG_NONE			0
 #define MM_FLAG_WRITE_PROTECTED 2
-#define MM_FLAG_MIRROR          3
+#define MM_FLAG_MIRROR          4
 
 typedef struct {
 	uint16_t start;

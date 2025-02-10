@@ -65,8 +65,8 @@ int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_
 #define B_SIZE     taito8080.mm.banks[i]->size
 #define B_END      (B_START + B_SIZE)
 #define B_MASK     (B_END - 1)
-#define B_WRITABLE ((taito8080.mm.banks[i]->flags & MM_FLAG_WRITE_PROTECTED) != 0)
-#define B_MIRRORED ((taito8080.mm.banks[i]->flags & MM_FLAG_MIRROR) == 0)
+#define B_WRITABLE ((taito8080.mm.banks[i]->flags & MM_FLAG_WRITE_PROTECTED) == 0)
+#define B_MIRRORED ((taito8080.mm.banks[i]->flags & MM_FLAG_MIRROR) != 0)
 #define B_PTR      taito8080.mm.memory
 #define B_COUNT    taito8080.mm.bank_count
 
