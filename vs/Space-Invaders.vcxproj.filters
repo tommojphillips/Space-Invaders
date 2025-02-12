@@ -9,22 +9,21 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="i8080">
       <UniqueIdentifier>{092efb9b-8ff7-4d36-b64e-8d2248be764f}</UniqueIdentifier>
     </Filter>
     <Filter Include="imgui">
       <UniqueIdentifier>{22a4b414-8be4-45fe-a549-ac1597ff6607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="romsets">
+      <UniqueIdentifier>{2a78aba0-beae-4326-916f-d339f4e1d2fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="machines">
+      <UniqueIdentifier>{c2d448bf-daa8-43c9-86f6-ffd466c9947c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\invaders.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\window_sdl2.c">
@@ -63,47 +62,53 @@
     <ClCompile Include="..\src\input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpm.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\emulator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lrescue.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ballbomb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cpu_tests.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\galxwars.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\invaderspt2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mb14241.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ballbomb.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\galxwars.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\invaders.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\invaderspt2.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lrescue.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\solfight.c">
-      <Filter>Source Files</Filter>
+      <Filter>romsets</Filter>
     </ClCompile>
     <ClCompile Include="..\src\spclaser.c">
-      <Filter>Source Files</Filter>
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\schaser.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\altair8800.c">
+      <Filter>machines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpm.c">
+      <Filter>machines</Filter>
     </ClCompile>
     <ClCompile Include="..\src\taito8080.c">
-      <Filter>Source Files</Filter>
+      <Filter>machines</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\invaders.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\window_sdl2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -116,38 +121,47 @@
     <ClInclude Include="..\src\ui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cpm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\emulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lrescue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ballbomb.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\galxwars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\invaderspt2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\mb14241.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\solfight.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\src\invaderspt2.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\invaders.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\galxwars.h">
+      <Filter>romsets</Filter>
     </ClInclude>
     <ClInclude Include="..\src\spclaser.h">
-      <Filter>Header Files</Filter>
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\solfight.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lrescue.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ballbomb.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\schaser.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\altair8800.h">
+      <Filter>machines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpm.h">
+      <Filter>machines</Filter>
     </ClInclude>
     <ClInclude Include="..\src\taito8080.h">
-      <Filter>Header Files</Filter>
+      <Filter>machines</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

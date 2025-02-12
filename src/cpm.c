@@ -204,18 +204,17 @@ void cpm_update() {
 }
 
 int cpm_init() {
-	taito8080.mm.rom = (uint8_t*)malloc(0x10000);
-	if (taito8080.mm.rom == NULL) {
+	taito8080.mm.memory = (uint8_t*)malloc(0x10000);
+	if (taito8080.mm.memory == NULL) {
 		printf("Failed to allocate ROM\n");
 		return 1;
 	}
-	memset(taito8080.mm.rom, 0, 0x10000);
-	taito8080.mm.rom_size = 0x10000;
+	memset(taito8080.mm.memory, 0, 0x10000);
+	taito8080.mm.memory_size = 0x10000;
 
+	taito8080.mm.rom = taito8080.mm.memory;
 	taito8080.mm.ram = taito8080.mm.rom;
-	taito8080.mm.ram_size = 0;
 	taito8080.mm.video = NULL;
-	taito8080.mm.video_size = 0;
 
 	i8080_init(&taito8080.cpu);
 	taito8080.cpu.read_byte = cpm_read_byte;

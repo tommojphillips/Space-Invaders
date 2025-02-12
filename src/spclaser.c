@@ -8,26 +8,19 @@
 #include "file.h"
 #include "taito8080.h"
 
-const MM spclaser_rom = {
-	.start  = 0x0000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION spclaser_regions[] = {
+	{ .start = 0x0000, .size = 0x2000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
 };
-const MM spclaser_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
-const MM* const spclaser_banks[2] = { &spclaser_rom, &spclaser_ram };
 
 uint8_t spclaser_read_io(uint8_t port) {
 	switch (port) {
 		
 		case PORT_INP1:
-			return (*(uint8_t*)&taito8080.io_input.input1);
+			return taito8080_default_inp1();
 
-		case PORT_INP2:		
-			return (*(uint8_t*)&taito8080.io_input.input2);
+		case PORT_INP2:			
+			return taito8080_default_inp2();
 
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -62,7 +55,12 @@ static int spclaser_load_rom() {
 int spclaser_init() {
 	taito8080.cpu.read_io = spclaser_read_io;
 	taito8080.cpu.write_io = spclaser_write_io;
-	taito8080.mm.banks = spclaser_banks;
-	taito8080.mm.bank_count = 2;
+	taito8080.mm.regions = spclaser_regions;
+	taito8080.mm.region_count = 2;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
+
 	return spclaser_load_rom();
 }

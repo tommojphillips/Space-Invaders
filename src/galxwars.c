@@ -8,22 +8,11 @@
 #include "file.h"
 #include "taito8080.h"
 
-MM galxwars_rom_bank1 = {
-	.start  = 0x0000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION galxwars_regions[] = {
+	{ .start = 0x0000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x1000, .size = 0x3000, .flags = MREGION_FLAG_NONE            },
+	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
-MM galxwars_rom_bank2 = {
-	.start  = 0x4000,
-	.size   = 0x1000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
-};
-MM galxwars_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
-MM* galxwars_banks[3] = { &galxwars_rom_bank1, &galxwars_rom_bank2, &galxwars_ram };
 
 uint8_t galxwars_read_io(uint8_t port) {
 	switch (port) {
@@ -87,8 +76,12 @@ static int galxwars_load_rom() {
 int galxwars_init() {
 	taito8080.cpu.read_io = galxwars_read_io;
 	taito8080.cpu.write_io = galxwars_write_io;
-	taito8080.mm.banks = galxwars_banks;
-	taito8080.mm.bank_count = 3;
+	taito8080.mm.regions = galxwars_regions;
+	taito8080.mm.region_count = 3;
 	taito8080.io_input.input0 = 0x40;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
 	return galxwars_load_rom();
 }

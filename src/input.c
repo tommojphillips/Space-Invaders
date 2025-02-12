@@ -24,65 +24,77 @@ static void game_input(uint8_t v) {
 	switch (sdl.e.key.keysym.sym) {
 
 		case SDLK_LEFT:
-			taito8080.io_input.input1.player_left = v;
-			//taito8080.io_input.input2.player_left = v;
+			emu.controls.player1.left = v;
+			emu.controls.player2.left = v;
 			break;
 
 		case SDLK_RIGHT:
-			taito8080.io_input.input1.player_right = v;
-			//taito8080.io_input.input2.player_right = v;
+			emu.controls.player1.right = v;
+			emu.controls.player2.right = v;
+			break;
+
+		case SDLK_UP:
+			emu.controls.player1.up = v;
+			emu.controls.player2.up = v;
+			break;
+
+		case SDLK_DOWN:
+			emu.controls.player1.down = v;
+			emu.controls.player2.down = v;
 			break;
 
 		case SDLK_SPACE:
-			taito8080.io_input.input1.player_fire = v;
-			//taito8080.io_input.input2.player_fire = v;
+			emu.controls.player1.fire = v;
+			emu.controls.player2.fire = v;
 			break;
 
 		case SDLK_1:
-			taito8080.io_input.input1.one_player = v;
+			emu.controls.player1.start = v;
 			break;
 
 		case SDLK_2:
-			taito8080.io_input.input1.two_player = v;
+			emu.controls.player2.start = v;
 			break;
 
 		case SDLK_3:
 		case SDLK_c:
-			taito8080.io_input.input1.coin = v;
+			emu.controls.insert_coin = v;
 			break;
 
 		case SDLK_t:
-			taito8080.io_input.input2.tilt = v;
+			emu.controls.tilt_switch = v;
+			break;
+
+		case SDLK_F1:
+			if (v) emu.controls.coin_info ^= 1;
+			break;
+		case SDLK_F2:
+			emu.controls.name_reset = v;
+			break;
+		case SDLK_F3:
+			emu.controls.preset_mode = v;
 			break;
 
 		case SDLK_r:
-			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) {
-				emu.machine->reset();
-			}
+			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) emu.machine->reset();
 			break;
 
 		case SDLK_F5:
-			if (v) {
-				if (emu.machine->save_state) emu.machine->save_state();
-			}
+			if (v && emu.machine->save_state) emu.machine->save_state();
 			break;
 		case SDLK_F9:
-			if (v) {
-				if (emu.machine->load_state) emu.machine->load_state();
-			}
+			if (v && emu.machine->load_state) emu.machine->load_state();
 			break;
 
 		case SDLK_p:
-			if (v) {
-				emu.single_step = emu.single_step ? SINGLE_STEP_NONE : SINGLE_STEP_AWAIT;
-			}
+			if (v) emu.single_step = emu.single_step ? SINGLE_STEP_NONE : SINGLE_STEP_AWAIT;
 			break;
 
 		case SDLK_i: /* spawn space ship */
-			*(uint16_t*)(taito8080.mm.ram + 0x91) = 0;
+			*(uint16_t*)(taito8080.mm.memory + 0x2091) = 0;
 			break;
 		case SDLK_u: /* kill space ship */
-			taito8080.mm.ram[0x85] = 1;
+			taito8080.mm.memory[0x2085] = 1;
 			break;
-	}	
+	}
 }

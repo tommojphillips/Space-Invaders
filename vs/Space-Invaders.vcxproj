@@ -165,6 +165,7 @@
     <ClCompile Include="..\src\input.c" />
     <ClCompile Include="..\src\invaderspt2.c" />
     <ClCompile Include="..\src\lrescue.c" />
+    <ClCompile Include="..\src\schaser.c" />
     <ClCompile Include="..\src\mb14241.c" />
     <ClCompile Include="..\src\solfight.c" />
     <ClCompile Include="..\src\spclaser.c" />
@@ -184,6 +185,7 @@
     <ClInclude Include="..\src\galxwars.h" />
     <ClInclude Include="..\src\invaderspt2.h" />
     <ClInclude Include="..\src\lrescue.h" />
+    <ClInclude Include="..\src\schaser.h" />
     <ClInclude Include="..\src\mb14241.h" />
     <ClInclude Include="..\src\solfight.h" />
     <ClInclude Include="..\src\spclaser.h" />

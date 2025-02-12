@@ -20,31 +20,26 @@ typedef struct {
 } ROMSET;
 
 
-#define MM_FLAG_NONE			0
-#define MM_FLAG_WRITE_PROTECTED 2
-#define MM_FLAG_MIRROR          4
+#define MREGION_FLAG_NONE            0
+#define MREGION_FLAG_WRITE_PROTECTED 2
+#define MREGION_FLAG_MIRRORED        4
 
 typedef struct {
 	uint16_t start;
 	uint16_t size;
 	uint8_t flags;
-} MM;
+} MEMORY_REGION;
 
 typedef struct {
 	uint8_t* memory;
 	uint32_t memory_size;
 
 	uint8_t* rom;
-	uint32_t rom_size;
-
 	uint8_t* ram;
-	uint32_t ram_size;
-
 	uint8_t* video;
-	uint32_t video_size;
 
-	const MM* const* banks;
-	int bank_count;
+	const MEMORY_REGION* regions;
+	int region_count;
 } MEMORY_MAP;
 
 typedef struct {
@@ -63,7 +58,35 @@ typedef struct {
 } MACHINE;
 
 typedef struct {
+	uint8_t left  : 1;
+	uint8_t right : 1;
+	uint8_t up    : 1;
+	uint8_t down  : 1;
+	uint8_t fire  : 1;
+	uint8_t start : 1;
+} PLAYER_INPUT;
+
+typedef struct {
+
+	uint8_t insert_coin : 1;
+	uint8_t tilt_switch : 1;
+
+	PLAYER_INPUT player1;
+	PLAYER_INPUT player2;
+
+	uint8_t lives;
+	uint8_t lives_min;
+	uint8_t lives_max;
+
+	uint8_t coin_info;
+	uint8_t preset_mode;
+	uint8_t name_reset;
+
+} CONTROLS;
+
+typedef struct {
 	const MACHINE* machine;
+	CONTROLS controls;
 	int romset_index;
 	int single_step;
 	int single_step_increment;

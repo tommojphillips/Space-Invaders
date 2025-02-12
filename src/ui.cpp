@@ -144,15 +144,19 @@ static void decode_window() {
 	Begin("Decode", (bool*)&ui_state.show_decode_window);
 	Checkbox("Follow flow", (bool*)&follow_next_instruction);
 	Separator();
-	BeginChild("Decode");
+	BeginChild("Decode"); 
+
 	uint16_t pc = taito8080.cpu.pc;
+	cpu_mnem(&mnem, pc);
+	Text("%04X: %s", pc, mnem.str);
+	Separator();
 	for (int i = 0; i < 10; ++i) {
-		cpu_mnem(&mnem, pc);
-		Text("%04X: %s", pc, mnem.str);
 		if (follow_next_instruction)
 			pc = mnem.pc;
 		else
-			pc += 1;
+			pc += mnem.count;
+		cpu_mnem(&mnem, pc);
+		Text("%04X: %s", pc, mnem.str);
 	}
 	EndChild();
 	End();
@@ -202,18 +206,12 @@ static void de_window() {
 	End();
 }
 static void dip_switch_window() {
+		
+	int tmp = emu.controls.lives_min + emu.controls.lives;
+	if (SliderInt("Lives", &tmp, emu.controls.lives_min, emu.controls.lives_max)) {
+		emu.controls.lives = (tmp - emu.controls.lives_min);
+	}
 
-	dip_switch8(&taito8080.io_output.sound1, 0, "Sound1");	
-	Separator();
-	dip_switch8(&taito8080.io_output.sound2, 16, "Sound2");	
-	Separator();
-	dip_switch8(&taito8080.io_output.sound3, 32, "Sound3");	
-	Separator();
-	dip_switch8(&taito8080.io_input.input0, 48, "Input0");
-	Separator();
-	dip_switch8((uint8_t*)&taito8080.io_input.input1, 64, "Input1");
-	Separator();
-	dip_switch8((uint8_t*)&taito8080.io_input.input2, 96, "Input2");
 }
 static void debug_window() {
 	Begin("Debug", (bool*)&ui_state.show_debug_window);

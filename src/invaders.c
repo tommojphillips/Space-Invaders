@@ -8,32 +8,19 @@
 #include "file.h"
 #include "taito8080.h"
 
-#define ROM_BANK1_SIZE 0x2000
-#define ROM_BANK1_MASK (ROM_BANK1_SIZE - 1)
-
-#define RAM_SIZE  0x2000
-#define RAM_MASK (RAM_SIZE - 1)
-
-const MM invaders_rom = {
-	.start  = 0x0000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION invaders_regions[] = {
+	{ .start = 0x0000, .size = 0x2000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
 };
-const MM invaders_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
-const MM* const invaders_banks[2] = { &invaders_rom, &invaders_ram };
 
 uint8_t invaders_read_io(uint8_t port) {
 	switch (port) {
 
 		case PORT_INP1:
-			return *(uint8_t*)&taito8080.io_input.input1;
+			return taito8080_default_inp1();
 
-		case PORT_INP2:			
-			return *(uint8_t*)&taito8080.io_input.input2;
+		case PORT_INP2:
+			return taito8080_default_inp2();
 		
 		case PORT_SHIFT_REG:
 			return mb14241_shift(&taito8080.shift_register);
@@ -83,7 +70,11 @@ static int invaders_load_rom() {
 int invaders_init() {
 	taito8080.cpu.read_io = invaders_read_io;
 	taito8080.cpu.write_io = invaders_write_io;
-	taito8080.mm.banks = invaders_banks;
-	taito8080.mm.bank_count = 2;
+	taito8080.mm.regions = invaders_regions;
+	taito8080.mm.region_count = 2;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
 	return invaders_load_rom();
 }

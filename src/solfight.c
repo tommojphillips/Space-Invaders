@@ -8,22 +8,11 @@
 #include "file.h"
 #include "taito8080.h"
 
-const MM solfight_rom_bank1 = {
-	.start  = 0x0000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION solfight_regions[] = {
+	{ .start = 0x0000, .size = 0x2000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
+	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
-const MM solfight_rom_bank2 = {
-	.start  = 0x4000,
-	.size   = 0x1000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
-};
-const MM solfight_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
-const MM* const  solfight_banks[3] = { &solfight_rom_bank1, &solfight_rom_bank2, &solfight_ram };
 
 uint8_t solfight_read_io(uint8_t port) {
 	switch (port) {
@@ -32,10 +21,10 @@ uint8_t solfight_read_io(uint8_t port) {
 			return taito8080.io_input.input0;
 
 		case PORT_INP1:
-			return (*(uint8_t*)&taito8080.io_input.input1);
-	
+			return taito8080_default_inp1();
+
 		case PORT_INP2:
-			return (*(uint8_t*)&taito8080.io_input.input2);
+			return taito8080_default_inp2();
 
 		default:
 			printf("Reading from undefined port: %02X\n", port);
@@ -81,7 +70,11 @@ static int solfight_load_rom() {
 int solfight_init() {
 	taito8080.cpu.read_io = solfight_read_io;
 	taito8080.cpu.write_io = solfight_write_io;
-	taito8080.mm.banks = solfight_banks;
-	taito8080.mm.bank_count = 3;
+	taito8080.mm.regions = solfight_regions;
+	taito8080.mm.region_count = 3;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
 	return solfight_load_rom();
 }

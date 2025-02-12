@@ -8,31 +8,20 @@
 #include "file.h"
 #include "taito8080.h"
 
-const MM ballbomb_rom_bank1 = {
-	.start	= 0x0000,
-	.size	= 0x2000,
-	.flags	= MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION ballbomb_regions[] = { 
+	{ .start = 0x0000, .size = 0x2000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
+	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
-const MM ballbomb_rom_bank2 = {
-	.start	= 0x4000,
-	.size	= 0x1000,
-	.flags	= MM_FLAG_WRITE_PROTECTED
-};
-const MM ballbomb_ram = {
-	.start	= 0x2000,
-	.size	= 0x2000,
-	.flags	= MM_FLAG_MIRROR
-};
-const MM* const ballbomb_banks[3] = { &ballbomb_rom_bank1, &ballbomb_rom_bank2, &ballbomb_ram };
 
 uint8_t ballbomb_read_io(uint8_t port) {
-	switch (port) {
+	switch (port) {		
 
 		case PORT_INP1:
-			return *(uint8_t*)&taito8080.io_input.input1;
+			return taito8080_default_inp1();
 
-		case PORT_INP2:		
-			return *(uint8_t*)&taito8080.io_input.input2;
+		case PORT_INP2:
+			return taito8080_default_inp2();
 
 		case PORT_SHIFT_REG:
 			return mb14241_shift(&taito8080.shift_register);
@@ -83,12 +72,17 @@ static int ballbomb_load_rom() {
 	if (taito8080_read_rom("ballbomb/tn04",   0x1800, 0x800) != 0) return 1;
 	if (taito8080_read_rom("ballbomb/tn05-1", 0x4000, 0x800) != 0) return 1;
 	if (taito8080_read_rom("ballbomb/tn06",   0x4800, 0x400) != 0) return 1;
+	if (taito8080_read_rom("ballbomb/tn07",   0x4C00, 0x400) != 0) return 1;
 	return 0;
 }
 int ballbomb_init() {
 	taito8080.cpu.read_io = ballbomb_read_io;
 	taito8080.cpu.write_io = ballbomb_write_io;
-	taito8080.mm.banks = ballbomb_banks;
-	taito8080.mm.bank_count = 3;
+	taito8080.mm.regions = ballbomb_regions;
+	taito8080.mm.region_count = 3;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
 	return ballbomb_load_rom();
 }

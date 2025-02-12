@@ -43,7 +43,7 @@ const MACHINE machines[] = {
 	  .load_state   = taito8080_load_state,
 	  .load_romset  = taito8080_load_romset,
 	  .romsets      = taito8080_romsets,
-	  .romset_count = 7
+	  .romset_count = 8
 	},
 };
 
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 		emu.machine->update();
 
 		if (16.666f < render_elapsed_time) {
-			render_elapsed_time = 0; //-= 16.666f;
+			render_elapsed_time -= 16.666f;
 			sdl_render();
 
 			if (emu.machine->vblank) {

@@ -17,7 +17,7 @@
 
 #define PORT_SHIFT_AMNT 2
 #define PORT_SHIFT_DATA 4
-#define PORT_SHIFT_REG 3
+#define PORT_SHIFT_REG  3
 
 #define PORT_SOUND1 3
 #define PORT_SOUND2 5
@@ -26,25 +26,24 @@
 #define PORT_WATCHDOG 6
 
 typedef struct {
-	uint8_t coin : 1;
-	uint8_t two_player : 1;
-	uint8_t one_player : 1;
-	uint8_t undefined_1 : 1;
-	uint8_t player_fire : 1;
-	uint8_t player_left : 1;
-	uint8_t player_right : 1;
-	uint8_t undefined_2 : 1;
+	uint8_t coin           : 1;
+	uint8_t player2_start  : 1;
+	uint8_t player1_start  : 1;
+	uint8_t undefined_1    : 1; // tied low
+	uint8_t player1_fire   : 1;
+	uint8_t player1_left   : 1;
+	uint8_t player1_right  : 1;
+	uint8_t undefined_2    : 1; // tied high
 } PORT1;
 
 typedef struct {
-	uint8_t ship1 : 1; // 00 = 3 ships  10 = 5 ships
-	uint8_t ship2 : 1; // 01 = 4 ships  11 = 6 ships
-	uint8_t tilt : 1;
-	uint8_t extra_ship : 1; // 0 = extra ship at 1500, 1 = extra ship at 1000
-	uint8_t player_fire : 1;
-	uint8_t player_left : 1;
-	uint8_t player_right : 1;
-	uint8_t coin_info : 1; //  Coin info displayed in demo screen 0=ON
+	uint8_t lives         : 2; // 00b = 3 lives  01b = 4 lives; 10b = 5 lives;  11b = 6 lives
+	uint8_t tilt          : 1;
+	uint8_t extra_life    : 1; // 0 = extra ship at 1500, 1 = extra ship at 1000
+	uint8_t player2_fire  : 1;
+	uint8_t player2_left  : 1;
+	uint8_t player2_right : 1;
+	uint8_t coin_info     : 1; //  Coin info displayed in demo screen 0=ON
 } PORT2;
 
 typedef struct {
@@ -56,8 +55,6 @@ typedef struct {
 
 typedef struct {
 	uint8_t input0;
-	PORT1 input1;
-	PORT2 input2;
 } INPUT_PORT;
 
 typedef struct {
@@ -85,6 +82,9 @@ void taito8080_load_state();
 
 int taito8080_load_romset(int i);
 int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_size);
+
+uint8_t taito8080_default_inp1();
+uint8_t taito8080_default_inp2();
 
 #ifdef __cplusplus
 };

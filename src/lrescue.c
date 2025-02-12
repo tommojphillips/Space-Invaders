@@ -8,31 +8,20 @@
 #include "file.h"
 #include "taito8080.h"
 
-const MM lrescue_rom_bank1 = {
-	.start  = 0x0000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
+const MEMORY_REGION lrescue_regions[] = {
+	{ .start = 0x0000, .size = 0x2000, .flags = MREGION_FLAG_WRITE_PROTECTED },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
+	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
-const MM lrescue_rom_bank2 = {
-	.start  = 0x4000,
-	.size   = 0x1000,
-	.flags  = MM_FLAG_WRITE_PROTECTED
-};
-const MM lrescue_ram = {
-	.start  = 0x2000,
-	.size   = 0x2000,
-	.flags  = MM_FLAG_MIRROR
-};
-const MM* const lrescue_banks[3] = { &lrescue_rom_bank1, &lrescue_rom_bank2, &lrescue_ram };
 
 uint8_t lrescue_read_io(uint8_t port) {
 	switch (port) {
 
 		case PORT_INP1:
-			return *(uint8_t*)&taito8080.io_input.input1;
+			return taito8080_default_inp1();
 
 		case PORT_INP2:			
-			return *(uint8_t*)&taito8080.io_input.input2;
+			return taito8080_default_inp2();
 
 		case PORT_SHIFT_REG:
 			return mb14241_shift(&taito8080.shift_register);
@@ -84,7 +73,11 @@ static int lrescue_load_rom() {
 int lrescue_init() {
 	taito8080.cpu.read_io = lrescue_read_io;
 	taito8080.cpu.write_io = lrescue_write_io;
-	taito8080.mm.banks = lrescue_banks;
-	taito8080.mm.bank_count = 3;
+	taito8080.mm.regions = lrescue_regions;
+	taito8080.mm.region_count = 3;
+
+	emu.controls.lives = 0;
+	emu.controls.lives_min = 3;
+	emu.controls.lives_max = 6;
 	return lrescue_load_rom();
 }

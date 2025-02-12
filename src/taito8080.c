@@ -20,6 +20,7 @@
 #include "spclaser.h"
 #include "solfight.h"
 #include "galxwars.h"
+#include "schaser.h"
 
 #define HALF_VBLANK 16666 // (2000000 / 60 / 2)
 #define FULL_VBLANK 33333 // (2000000 / 60) // 2 Mhz @ 60 hz 
@@ -34,7 +35,8 @@
 #define ROMSET_BALLBOMBER   3
 #define ROMSET_SPACE_LASER  4
 #define ROMSET_GALX_WARS    5
-#define ROMSET_SOL_FIGHT    6
+#define ROMSET_OZMA_WARS    6
+#define ROMSET_SCHASER      7
 
 const ROMSET taito8080_romsets[] = {
 	{ ROMSET_INVADERS,      "space invaders",       invaders_init		},
@@ -43,12 +45,14 @@ const ROMSET taito8080_romsets[] = {
 	{ ROMSET_BALLBOMBER,    "ballon bomber",        ballbomb_init		},
 	{ ROMSET_SPACE_LASER,   "space laser",          spclaser_init		},
 	{ ROMSET_GALX_WARS,     "galaxy wars",          galxwars_init		},
-	{ ROMSET_SOL_FIGHT,     "sol fight",            solfight_init		},
+	{ ROMSET_OZMA_WARS,     "ozma wars",            solfight_init		},
+	{ ROMSET_SCHASER,       "space chaser",         schaser_init        },
 };
 
 TAITO8080 taito8080 = { 0 };
 
 int taito8080_load_romset(int i) {
+	memset(taito8080.mm.memory, 0, 0x10000);
 	printf("Loading romset: %s\n", taito8080_romsets[i].name);
 	if (taito8080_romsets[i].init_romset() != 0) {
 		printf("Failed to load romset\n");
@@ -61,28 +65,40 @@ int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_
 	return read_file_into_buffer(filename, taito8080.mm.rom, 0x10000, offset, expected_size);
 }
 
-#define B_START    taito8080.mm.banks[i]->start
-#define B_SIZE     taito8080.mm.banks[i]->size
+#define B_START    taito8080.mm.regions[i].start
+#define B_SIZE     taito8080.mm.regions[i].size
 #define B_END      (B_START + B_SIZE)
-#define B_MASK     (B_END - 1)
-#define B_WRITABLE ((taito8080.mm.banks[i]->flags & MM_FLAG_WRITE_PROTECTED) == 0)
-#define B_MIRRORED ((taito8080.mm.banks[i]->flags & MM_FLAG_MIRROR) != 0)
+#define B_MASK     (B_SIZE - 1)
+#define B_WRITABLE ((taito8080.mm.regions[i].flags & MREGION_FLAG_WRITE_PROTECTED) == 0)
+#define B_MIRRORED ((taito8080.mm.regions[i].flags & MREGION_FLAG_MIRRORED) != 0)
 #define B_PTR      taito8080.mm.memory
-#define B_COUNT    taito8080.mm.bank_count
+#define B_COUNT    taito8080.mm.region_count
 
 uint8_t taito8080_read_byte(uint16_t address) {
 	for (int i = 0; i < B_COUNT; ++i) {
 		if ((address < B_END || B_MIRRORED) && address >= B_START) {
-			return *(uint8_t*)(B_PTR + (address & B_MASK));
+			return *(uint8_t*)(B_PTR + B_START + (address & B_MASK));
 		}
 	}
+	//printf("reading from %x\n", address);
 	return 0;
 }
 void taito8080_write_byte(uint16_t address, uint8_t value) {
 	for (int i = 0; i < B_COUNT; ++i) {
 		if (B_WRITABLE && (address < B_END || B_MIRRORED) && address >= B_START) {
-			*(uint8_t*)(B_PTR + (address & B_MASK)) = value;
+			*(uint8_t*)(B_PTR + B_START + (address & B_MASK)) = value;
 			return;
+		}
+	}
+	//printf("writing %x to %x\n", value, address);
+}
+
+void taito8080_set_writeable_regions(uint8_t value) {
+	for (int i = 0; i < B_COUNT; ++i) {
+		if (B_WRITABLE) {
+			for (int j = 0; j < B_SIZE; ++j) {
+				*(uint8_t*)(B_PTR + B_START + (j & B_MASK)) = value;
+			}
 		}
 	}
 }
@@ -117,7 +133,9 @@ void taito8080_tick(uint32_t cycles) {
 void taito8080_reset() {
 	i8080_reset(&taito8080.cpu);
 	mb14241_reset(&taito8080.shift_register);
+	taito8080_set_writeable_regions(0);
 }
+
 void taito8080_update() {
 
 	if (taito8080.cpu.flags.halt) return;
@@ -151,13 +169,8 @@ int taito8080_init() {
 	taito8080.mm.memory_size = 0x10000;
 
 	taito8080.mm.rom = (taito8080.mm.memory);
-	taito8080.mm.rom_size = 0x2000;
-
-	taito8080.mm.ram = (taito8080.mm.memory + 0x2000);
-	taito8080.mm.ram_size = 0x0400;
-
+	taito8080.mm.ram = (taito8080.mm.rom + 0x2000);
 	taito8080.mm.video = (taito8080.mm.ram + 0x0400);
-	taito8080.mm.video_size = 0x1C00;
 
 	i8080_init(&taito8080.cpu);
 	taito8080.cpu.read_byte = taito8080_read_byte;
@@ -165,6 +178,8 @@ int taito8080_init() {
 
 	emu.single_step = SINGLE_STEP_NONE;
 	emu.single_step_increment = 1;
+
+	taito8080_reset();
 
 	if (taito8080_load_romset(ROMSET_INVADERS) != 0) {
 		return 1;
@@ -192,7 +207,6 @@ void taito8080_save_state() {
 	}
 	fwrite(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
 	fwrite(&taito8080.shift_register, 1, sizeof(MB14241), file);
-	fwrite(&taito8080.io_output, 1, sizeof(OUTPUT_PORT), file);
 	fwrite(&taito8080.cpu, 1, sizeof(I8080), file);
 	fclose(file);
 }
@@ -207,7 +221,6 @@ void taito8080_load_state() {
 
 	fread(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
 	fread(&taito8080.shift_register, 1, sizeof(MB14241), file);
-	fread(&taito8080.io_output, 1, sizeof(OUTPUT_PORT), file);
 
 	I8080 c = { 0 };
 	fread(&c, 1, sizeof(I8080), file);
@@ -218,4 +231,26 @@ void taito8080_load_state() {
 		taito8080.cpu.registers[i] = c.registers[i];
 	}
 	fclose(file);
+}
+
+uint8_t taito8080_default_inp1() {
+	PORT1 port1 = {
+		.coin          = emu.controls.insert_coin,
+		.player1_start = emu.controls.player1.start,
+		.player2_start = emu.controls.player2.start,
+		.player1_fire  = emu.controls.player1.fire,
+		.player1_left  = emu.controls.player1.left,
+		.player1_right = emu.controls.player1.right,
+	};
+	return *(uint8_t*)&port1;
+}
+uint8_t taito8080_default_inp2() {
+	PORT2 port2 = {
+		.player2_fire  = emu.controls.player2.fire,
+		.player2_left  = emu.controls.player2.left,
+		.player2_right = emu.controls.player2.right,
+		.tilt          = emu.controls.tilt_switch,
+		.lives         = emu.controls.lives & 0x3
+	};
+	return *(uint8_t*)&port2;
 }
