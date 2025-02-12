@@ -11,6 +11,7 @@ extern "C" {
 typedef struct {
 	I8080* cpu;
 	uint8_t opcode;
+	uint8_t count;
 	uint16_t pc;
 	char str[32];
 } I8080_MNEM;

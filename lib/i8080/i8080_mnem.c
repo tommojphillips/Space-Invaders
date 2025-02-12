@@ -10,6 +10,7 @@
 
 #define SP mnem->cpu->sp
 #define PC mnem->pc
+#define COUNT(x) mnem->count = x
 #define SSS (mnem->opcode & 0b111)
 #define DDD ((mnem->opcode >> 3) & 0b111)
 
@@ -42,11 +43,13 @@ static const char* rp_mnem[RP_COUNT] = {
 static void CALL(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CALL 0x%04X", address);
+	COUNT(3);
 	PC = address;
 }
 static void CC(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CC 0x%04X", address);
+	COUNT(3);
 	if (CF) {
 		PC = address;
 	}
@@ -57,6 +60,7 @@ static void CC(I8080_MNEM* mnem) {
 static void CNC(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CNC 0x%04X", address);
+	COUNT(3);
 	if (!CF) {
 		PC = address;
 	}
@@ -67,6 +71,7 @@ static void CNC(I8080_MNEM* mnem) {
 static void CZ(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CZ 0x%04X", address);
+	COUNT(3);
 	if (ZF) {
 		PC = address;
 	}
@@ -77,6 +82,7 @@ static void CZ(I8080_MNEM* mnem) {
 static void CNZ(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CNZ 0x%04X", address);
+	COUNT(3);
 	if (!ZF) {
 		PC = address;
 	}
@@ -87,6 +93,7 @@ static void CNZ(I8080_MNEM* mnem) {
 static void CP(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CP 0x%04X", address);
+	COUNT(3);
 	if (!SF) {
 		PC = address;
 	}
@@ -97,6 +104,7 @@ static void CP(I8080_MNEM* mnem) {
 static void CM(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CM 0x%04X", address);
+	COUNT(3);
 	if (SF) {
 		PC = address;
 	}
@@ -107,6 +115,7 @@ static void CM(I8080_MNEM* mnem) {
 static void CPE(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CPE 0x%04X", address);
+	COUNT(3);
 	if (PF) {
 		PC = address;
 	}
@@ -117,6 +126,7 @@ static void CPE(I8080_MNEM* mnem) {
 static void CPO(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("CPO 0x%04X", address);
+	COUNT(3);
 	if (!PF) {
 		PC = address;
 	}
@@ -127,10 +137,12 @@ static void CPO(I8080_MNEM* mnem) {
 
 static void RET(I8080_MNEM* mnem) {
 	MNEM("RET");
+	COUNT(1);
 	PC = READ_STACK_ADDRESS;
 }
 static void RC(I8080_MNEM* mnem) {
 	MNEM("RC");
+	COUNT(1);
 	if (CF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -140,6 +152,7 @@ static void RC(I8080_MNEM* mnem) {
 }
 static void RNC(I8080_MNEM* mnem) {
 	MNEM("RNC");
+	COUNT(1);
 	if (!CF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -149,6 +162,7 @@ static void RNC(I8080_MNEM* mnem) {
 }
 static void RZ(I8080_MNEM* mnem) {
 	MNEM("RZ");
+	COUNT(1);
 	if (ZF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -158,6 +172,7 @@ static void RZ(I8080_MNEM* mnem) {
 }
 static void RNZ(I8080_MNEM* mnem) {
 	MNEM("RNZ");
+	COUNT(1);
 	if (!ZF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -167,6 +182,7 @@ static void RNZ(I8080_MNEM* mnem) {
 }
 static void RP(I8080_MNEM* mnem) {
 	MNEM("RP");
+	COUNT(1);
 	if (!SF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -176,6 +192,7 @@ static void RP(I8080_MNEM* mnem) {
 }
 static void RM(I8080_MNEM* mnem) {
 	MNEM("RM");
+	COUNT(1);
 	if (SF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -185,6 +202,7 @@ static void RM(I8080_MNEM* mnem) {
 }
 static void RPE(I8080_MNEM* mnem) {
 	MNEM("RPE");
+	COUNT(1);
 	if (PF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -194,6 +212,7 @@ static void RPE(I8080_MNEM* mnem) {
 }
 static void RPO(I8080_MNEM* mnem) {
 	MNEM("RPO");
+	COUNT(1);
 	if (!PF) {
 		PC = READ_STACK_ADDRESS;
 	}
@@ -205,72 +224,87 @@ static void RPO(I8080_MNEM* mnem) {
 static void RST(I8080_MNEM* mnem) {
 	uint8_t rst_num = ((mnem->opcode >> 3) & 0b111);
 	MNEM("RST %d", rst_num);
+	COUNT(1);
 	PC += 1;
 }
 
 static void IN(I8080_MNEM* mnem) {
 	uint8_t port = READ_BYTE(PC + 1);
 	MNEM("IN 0x%02X", port);
+	COUNT(2);
 	PC += 2;
 }
 static void OUT(I8080_MNEM* mnem) {
 	uint8_t port = READ_BYTE(PC + 1);
 	MNEM("OUT 0x%02X", port);
+	COUNT(2);
 	PC += 2;
 }
 
 static void LXI_BC(I8080_MNEM* mnem) {
 	uint16_t imm  = READ_ADDRESS;
 	MNEM("LXI %s, 0x%04X", rp_mnem[RP_BC], imm);
+	COUNT(3);
 	PC += 3;
 }
 static void LXI_DE(I8080_MNEM* mnem) {
 	uint16_t imm = READ_ADDRESS;
 	MNEM("LXI %s, 0x%04X", rp_mnem[RP_DE], imm);
+	COUNT(3);
 	PC += 3;
 }
 static void LXI_HL(I8080_MNEM* mnem) {
 	uint16_t imm = READ_ADDRESS;
 	MNEM("LXI %s, 0x%04X", rp_mnem[RP_HL], imm);
+	COUNT(3);
 	PC += 3;
 }
 static void LXI_SP(I8080_MNEM* mnem) {
 	uint16_t imm = READ_ADDRESS;
 	MNEM("LXI SP, 0x%04X", imm);
+	COUNT(3);
 	PC += 3;
 }
 
 static void PUSH_BC(I8080_MNEM* mnem) {
 	MNEM("PUSH %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void PUSH_DE(I8080_MNEM* mnem) {
 	MNEM("PUSH %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void PUSH_HL(I8080_MNEM* mnem) {
 	MNEM("PUSH %s", rp_mnem[RP_HL]);
+	COUNT(1);
 	PC += 1;
 }
 static void PUSH_PSW(I8080_MNEM* mnem) {
 	MNEM("PUSH %s", rp_mnem[RP_PSW]);
+	COUNT(1);
 	PC += 1;
 }
 
 static void POP_BC(I8080_MNEM* mnem) {
 	MNEM("POP %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void POP_DE(I8080_MNEM* mnem) {
 	MNEM("POP %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void POP_HL(I8080_MNEM* mnem) {
 	MNEM("POP %s", rp_mnem[RP_HL]);
+	COUNT(1);
 	PC += 1;
 }
 static void POP_PSW(I8080_MNEM* mnem) {
 	MNEM("POP %s", rp_mnem[RP_PSW]);
+	COUNT(1);
 	PC += 1;
 }
 
@@ -278,192 +312,233 @@ static void STA(I8080_MNEM* mnem) {
 	/* Store A to [address] */
 	uint16_t address = READ_ADDRESS;
 	MNEM("STA 0x%04X", address);
+	COUNT(3);
 	PC += 3;
 }
 static void LDA(I8080_MNEM* mnem) {
 	/* Load A from [address] */
 	uint16_t address = READ_ADDRESS;
 	MNEM("LDA 0x%04X", address);
+	COUNT(3);
 	PC += 3;
 }
 
 static void XCHG(I8080_MNEM* mnem) {
 	MNEM("XCHG");
+	COUNT(1);
 	PC += 1;
 }
 static void XTHL(I8080_MNEM* mnem) {
 	MNEM("XTHL");
+	COUNT(1);
 	PC += 1;
 }
 
 static void SPHL(I8080_MNEM* mnem) {
 	MNEM("SPHL");
+	COUNT(1);
 	PC += 1;
 }
 static void PCHL(I8080_MNEM* mnem) {
 	MNEM("PCHL");
+	COUNT(1);
 	PC = HL;
 }
 
 static void DAD_BC(I8080_MNEM* mnem) {
 	MNEM("DAD %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void DAD_DE(I8080_MNEM* mnem) {
 	MNEM("DAD %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void DAD_HL(I8080_MNEM* mnem) {
 	MNEM("DAD %s", rp_mnem[RP_HL]);
+	COUNT(1);
 	PC += 1;
 }
 static void DAD_SP(I8080_MNEM* mnem) {
 	MNEM("DAD SP");
+	COUNT(1);
 	PC += 1;
 }
 
 static void STAX_BC(I8080_MNEM* mnem) {
 	MNEM("STAX %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void STAX_DE(I8080_MNEM* mnem) {
 	MNEM("STAX %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 
 static void LDAX_BC(I8080_MNEM* mnem) {
 	MNEM("LDAX %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void LDAX_DE(I8080_MNEM* mnem) {
 	MNEM("LDAX %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void HLT(I8080_MNEM* mnem) {
 	MNEM("HLT");
+	COUNT(1);
 	PC += 1;
 }
 
 static void MOV(I8080_MNEM* mnem) {
 	MNEM("MOV %s, %s", reg_mnem[DDD], reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void MOV_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("MVI %s, 0x%02X", reg_mnem[DDD], imm);
+	COUNT(2);
 	PC += 2;
 }
 
 static void INR(I8080_MNEM* mnem) {
 	MNEM("INR %s", reg_mnem[DDD]);
+	COUNT(1);
 	PC += 1;
 }
 static void DCR(I8080_MNEM* mnem) {
 	MNEM("DCR %s", reg_mnem[DDD]);
+	COUNT(1);
 	PC += 1;
 }
 
 static void ADD(I8080_MNEM* mnem) {
 	MNEM("ADD %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void ADC(I8080_MNEM* mnem) {
 	MNEM("ADC %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void SUB(I8080_MNEM* mnem) {
 	MNEM("SUB %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void SBB(I8080_MNEM* mnem) {
 	MNEM("SBB %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 
 static void ANA(I8080_MNEM* mnem) {
 	MNEM("ANA %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void XRA(I8080_MNEM* mnem) {	
-	MNEM("XOR %s", reg_mnem[SSS]);
+	MNEM("XRA %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void ORA(I8080_MNEM* mnem) {
-	MNEM("OR %s", reg_mnem[SSS]);
+	MNEM("ORA %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 static void CMP(I8080_MNEM* mnem) {
 	MNEM("CMP %s", reg_mnem[SSS]);
+	COUNT(1);
 	PC += 1;
 }
 
 static void ADD_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("ADI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void ADC_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("ACI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void SUB_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("SUI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void SBB_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("SBI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 
 static void ANA_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("ANI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void XRA_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("XRI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void ORA_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("ORI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 static void CMP_I(I8080_MNEM* mnem) {
 	uint8_t imm = READ_BYTE(PC + 1);
 	MNEM("CPI 0x%02X", imm);
+	COUNT(2);
 	PC += 2;
 }
 
 static void RLC(I8080_MNEM* mnem) {
 	MNEM("RLC");
+	COUNT(1);
 	PC += 1;
 }
 static void RRC(I8080_MNEM* mnem) {
 	MNEM("RRC");
+	COUNT(1);
 	PC += 1;
 }
 static void RAL(I8080_MNEM* mnem) {
 	MNEM("RAL");
+	COUNT(1);
 	PC += 1;
 }
 static void RAR(I8080_MNEM* mnem) {
 	MNEM("RAR");
+	COUNT(1);
 	PC += 1;
 }
 
 static void JMP(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JMP 0x%04X", address);
+	COUNT(3);
 	PC = address;
 }
 static void JC(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JC 0x%04X", address);
+	COUNT(3);
 	if (CF) {
 		PC = address;
 	}
@@ -474,6 +549,7 @@ static void JC(I8080_MNEM* mnem) {
 static void JNC(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JNC 0x%04X", address);
+	COUNT(3);
 	if (!CF) {
 		PC = address;
 	}
@@ -484,6 +560,7 @@ static void JNC(I8080_MNEM* mnem) {
 static void JZ(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JZ 0x%04X", address);
+	COUNT(3);
 	if (ZF) {
 		PC = address;
 	}
@@ -494,6 +571,7 @@ static void JZ(I8080_MNEM* mnem) {
 static void JNZ(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JNZ 0x%04X", address);
+	COUNT(3);
 	if (!ZF) {
 		PC = address;
 	}
@@ -504,6 +582,7 @@ static void JNZ(I8080_MNEM* mnem) {
 static void JP(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JP 0x%04X", address);
+	COUNT(3);
 	if (!SF) {
 		PC = address;
 	}
@@ -514,6 +593,7 @@ static void JP(I8080_MNEM* mnem) {
 static void JM(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JM 0x%04X", address);
+	COUNT(3);
 	if (SF) {
 		PC = address;
 	}
@@ -524,6 +604,7 @@ static void JM(I8080_MNEM* mnem) {
 static void JPE(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JPE 0x%04X", address);
+	COUNT(3);
 	if (PF) {
 		PC = address;
 	}
@@ -534,6 +615,7 @@ static void JPE(I8080_MNEM* mnem) {
 static void JPO(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("JPO 0x%04X", address);
+	COUNT(3);
 	if (!PF) {
 		PC = address;
 	}
@@ -544,77 +626,94 @@ static void JPO(I8080_MNEM* mnem) {
 
 static void INX_BC(I8080_MNEM* mnem) {
 	MNEM("INX %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void INX_DE(I8080_MNEM* mnem) {
 	MNEM("INX %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void INX_HL(I8080_MNEM* mnem) {
 	MNEM("INX %s", rp_mnem[RP_HL]);
+	COUNT(1);
 	PC += 1;
 }
 static void INX_SP(I8080_MNEM* mnem) {
 	MNEM("INX SP");
+	COUNT(1);
 	PC += 1;
 }
 
 static void DCX_BC(I8080_MNEM* mnem) {
 	MNEM("DCX %s", rp_mnem[RP_BC]);
+	COUNT(1);
 	PC += 1;
 }
 static void DCX_DE(I8080_MNEM* mnem) {
 	MNEM("DCX %s", rp_mnem[RP_DE]);
+	COUNT(1);
 	PC += 1;
 }
 static void DCX_HL(I8080_MNEM* mnem) {
 	MNEM("DCX %s", rp_mnem[RP_HL]);
+	COUNT(1);
 	PC += 1;
 }
 static void DCX_SP(I8080_MNEM* mnem) {
 	MNEM("DCX SP");
+	COUNT(1);
 	PC += 1;
 }
 
 static void CMA(I8080_MNEM* mnem) {
 	MNEM("CMA");
+	COUNT(1);
 	PC += 1;
 }
 static void STC(I8080_MNEM* mnem) {
 	MNEM("STC");
+	COUNT(1);
 	PC += 1;
 }
 static void CMC(I8080_MNEM* mnem) {
 	MNEM("CMC");
+	COUNT(1);
 	PC += 1;
 }
 static void DAA(I8080_MNEM* mnem) {
 	MNEM("DAA");
+	COUNT(1);
 	PC += 1;
 }
 
 static void SHLD(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("SHLD 0x%04X", address);
+	COUNT(3);
 	PC += 3;
 }
 static void LHLD(I8080_MNEM* mnem) {
 	uint16_t address = READ_ADDRESS;
 	MNEM("SHLD 0x%04X", address);
+	COUNT(3);
 	PC += 3;
 }
 
 static void EI(I8080_MNEM* mnem) {
 	MNEM("EI");
+	COUNT(1);
 	PC += 1;
 }
 static void DI(I8080_MNEM* mnem) {
 	MNEM("DI");
+	COUNT(1);
 	PC += 1;
 }
 
 static void NOP(I8080_MNEM* mnem) {
 	MNEM("NOP");
+	COUNT(1);
 	PC += 1;
 }
 
@@ -657,7 +756,7 @@ void cpu_mnem(I8080_MNEM* mnem, uint16_t pc) {
 			break;
 
 		case 0x02:
-			STAX_DE(mnem);
+			STAX_BC(mnem);
 			break;
 		case 0x12:
 			STAX_DE(mnem);
