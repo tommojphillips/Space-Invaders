@@ -1067,7 +1067,7 @@ static void DAA(I8080* cpu) {
 
 static void RST(I8080* cpu) {
 	uint8_t rst_address = (cpu->opcode & 0b00111000);
-	uint16_t return_address = PC;
+	uint16_t return_address = PC + 1;
 	push_word(cpu, return_address);
 	PC = rst_address;
 	CYCLES(11);
