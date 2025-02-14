@@ -44,41 +44,41 @@ const ROMSET cpm_tests[] = {
 void inject_bdos_signals() {
 
 	// inject "out 0,a" at 0x0000 (signal to stop the test)
-	taito8080.mm.rom[0x0000] = 0xD3; /* OUT opcode */
-	taito8080.mm.rom[0x0001] = 0x00; /* PORT 0 */
+	taito8080.mm.memory[0x0000] = 0xD3; /* OUT opcode */
+	taito8080.mm.memory[0x0001] = 0x00; /* PORT 0 */
 
 	// inject "out 1,a" at 0x0005 (signal to output some characters)
-	taito8080.mm.rom[0x0005] = 0xD3; /* OUT opcode */
-	taito8080.mm.rom[0x0006] = 0x01; /* PORT 1 */
-	taito8080.mm.rom[0x0007] = 0xC9; /* RET */
+	taito8080.mm.memory[0x0005] = 0xD3; /* OUT opcode */
+	taito8080.mm.memory[0x0006] = 0x01; /* PORT 1 */
+	taito8080.mm.memory[0x0007] = 0xC9; /* RET */
 }
 
 int test_init() {
-	if (read_file_into_buffer("TEST.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("TEST.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int cputest_init() {
-	if (read_file_into_buffer("CPUTEST.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("CPUTEST.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int tst8080_init() {
-	if (read_file_into_buffer("TST8080.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("TST8080.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int pre8080_init() {
-	if (read_file_into_buffer("8080PRE.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("8080PRE.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int exer8080_init() {
-	if (read_file_into_buffer("8080EXER.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("8080EXER.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int ex18080_init() {
-	if (read_file_into_buffer("8080EX1.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("8080EX1.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int exm8080_init() {
-	if (read_file_into_buffer("8080EXM.COM", taito8080.mm.rom, 0x10000, 0x100, 0) != 0) return 1;
+	if (read_file_into_buffer("8080EXM.COM", taito8080.mm.memory, 0x10000, 0x100, 0) != 0) return 1;
 	return 0;
 }
 int cpm_load_test(int i) {
@@ -122,7 +122,7 @@ static void cpu_log() {
 		taito8080.cpu.read_byte(taito8080.cpu.pc+3),
 		mnem.str);
 }
-static cpm_execute() {
+static void cpm_execute() {
 	//cpu_log();
 	i8080_execute(&taito8080.cpu);
 }
@@ -143,13 +143,14 @@ static void cpu_tick(uint32_t cycles) {
 }
 
 uint8_t cpm_read_byte(uint16_t address) {
-	return *(uint8_t*)(taito8080.mm.rom + (address & 0xFFFF));
+	return *(uint8_t*)(taito8080.mm.memory + (address & 0xFFFF));
 }
 void cpm_write_byte(uint16_t address, uint8_t value) {
-	*(uint8_t*)(taito8080.mm.rom + (address & 0xFFFF)) = value;
+	*(uint8_t*)(taito8080.mm.memory + (address & 0xFFFF)) = value;
 }
 
 uint8_t cpm_read_io(uint8_t port) {
+	(void)port;
 	return 0;
 }
 void cpm_write_io(uint8_t port, uint8_t value) {
@@ -211,9 +212,6 @@ int cpm_init() {
 	}
 	memset(taito8080.mm.memory, 0, 0x10000);
 	taito8080.mm.memory_size = 0x10000;
-
-	taito8080.mm.rom = taito8080.mm.memory;
-	taito8080.mm.ram = taito8080.mm.rom;
 	taito8080.mm.video = NULL;
 
 	i8080_init(&taito8080.cpu);
@@ -235,10 +233,10 @@ int cpm_init() {
 	return 0;
 }
 void cpm_destroy() {
-	if (taito8080.mm.rom != NULL) {
-		free(taito8080.mm.rom);
-		taito8080.mm.rom = NULL;
-		taito8080.mm.ram = NULL;
+	if (taito8080.mm.memory != NULL) {
+		free(taito8080.mm.memory);
+		taito8080.mm.memory = NULL;
+		taito8080.mm.video = NULL;
 	}
 }
 
