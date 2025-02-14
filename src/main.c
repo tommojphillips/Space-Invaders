@@ -9,11 +9,13 @@
 #include "i8080.h"
 #include "taito8080.h"
 #include "cpm.h"
+#include "altair8800.h"
 
 #include "emulator.h"
 
 #define CPM			0
 #define TAITO8080	1
+#define ALTAIR_8800	2
 
 const MACHINE machines[] = {
 	{ 
@@ -43,7 +45,21 @@ const MACHINE machines[] = {
 	  .load_state   = taito8080_load_state,
 	  .load_romset  = taito8080_load_romset,
 	  .romsets      = taito8080_romsets,
-	  .romset_count = 8
+	  .romset_count = 10
+	},
+	{ 
+	  .id           = ALTAIR_8800,
+	  .name         = "Altair 8800",
+	  .init         = altair8800_init,
+	  .destroy      = altair8800_destroy,
+	  .reset        = altair8800_reset,
+	  .update       = altair8800_update,
+	  .vblank       = altair8800_vblank,
+	  .save_state   = NULL,
+	  .load_state   = NULL,
+	  .load_romset  = altair8800_load_rom,
+	  .romsets      = altair8800_roms,
+	  .romset_count = 1
 	},
 };
 
@@ -57,6 +73,8 @@ static void start_frame() {
 }
 
 int main(int argc, char** argv) {
+	(void)argc;
+	(void)argv;
 
 	sdl_init();
 	sdl_create_window();
@@ -65,6 +83,7 @@ int main(int argc, char** argv) {
 
 	emu.machine = &machines[TAITO8080];
 	//emu.machine = &machines[CPM];
+	//emu.machine = &machines[ALTAIR_8800];
 	emu.machine->init();
 
 	while (window_state->window_open) {
