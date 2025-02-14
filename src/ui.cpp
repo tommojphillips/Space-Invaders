@@ -42,10 +42,6 @@ using namespace ImGui;
 
 #define process_event ImGui_ImplSDL2_ProcessEvent(&sdl.e)
 
-#define set_bit(v, n) v |= (1 << n)
-#define clear_bit(v, n) v &= (~(1 << n))
-#define get_bit(v, n) ((v & (1 << n)) >> n)
-
 /* Imgui state */
 typedef struct {
 	ImGuiContext* context;
@@ -163,7 +159,7 @@ static void decode_window() {
 }
 static void stack_window() {
 	Begin("Stack", (bool*)&ui_state.show_stack_window);
-	int k = 0;
+	uint16_t k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", taito8080.cpu.sp + k);
 		SameLine();
@@ -178,7 +174,7 @@ static void stack_window() {
 static void hl_window() {
 	Begin("HL", (bool*)&ui_state.show_hl_window);
 	uint16_t ptr = ((taito8080.cpu.registers[REG_H] << 8) | taito8080.cpu.registers[REG_L]);
-	int k = 0;
+	uint16_t k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", ptr + k);
 		SameLine();
@@ -193,7 +189,7 @@ static void hl_window() {
 static void de_window() {
 	Begin("DE", (bool*)&ui_state.show_de_window);
 	uint16_t ptr = ((taito8080.cpu.registers[REG_D] << 8) | taito8080.cpu.registers[REG_E]);
-	int k = 0;
+	uint16_t k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", ptr + k);
 		SameLine();
@@ -209,7 +205,7 @@ static void dip_switch_window() {
 		
 	int tmp = emu.controls.lives_min + emu.controls.lives;
 	if (SliderInt("Lives", &tmp, emu.controls.lives_min, emu.controls.lives_max)) {
-		emu.controls.lives = (tmp - emu.controls.lives_min);
+		emu.controls.lives = ((uint8_t)tmp - emu.controls.lives_min);
 	}
 
 }
@@ -303,7 +299,7 @@ static void debug_window() {
 
 	End();
 }
-static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
+static void menu_window() {
 	
 	Begin("Menu", (bool*)&ui_state.show_menu_window);	
 	Separator();
@@ -363,7 +359,6 @@ static void menu_window() {const ImU32 on = IM_COL32(255, 255, 255, 255);
 static void dip_switch8(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 	const ImU32 on = IM_COL32(255, 255, 255, 255);
 	const ImU32 off = IM_COL32(0, 0, 0, 255);
-	const ImU32 background = IM_COL32(0, 255, 0, 0);
 	const ImVec2 scale = ImVec2(15, 25);
 
 	Text("%s (%X)", dip_name, *v);
@@ -395,7 +390,6 @@ static void dip_switch8(uint8_t* v, uint8_t id_offset, const char* dip_name) {
 static void dip_switch16(uint16_t* v, uint8_t id_offset, const char* dip_name) {
 	const ImU32 on = IM_COL32(255, 255, 255, 255);
 	const ImU32 off = IM_COL32(0, 0, 0, 255);
-	const ImU32 background = IM_COL32(0, 255, 0, 0);
 	const ImVec2 scale = ImVec2(15, 25);
 
 	Text("%s (%X)", dip_name, *v);
