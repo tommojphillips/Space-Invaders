@@ -222,10 +222,11 @@ static void RPO(I8080_MNEM* mnem) {
 }
 
 static void RST(I8080_MNEM* mnem) {
-	uint8_t rst_num = ((mnem->opcode >> 3) & 0b111);
+	uint8_t rst_address = (mnem->opcode & 0b00111000);
+	uint8_t rst_num = ((rst_address >> 3) & 0b111);
 	MNEM("RST %d", rst_num);
 	COUNT(1);
-	PC += 1;
+	PC = rst_address;
 }
 
 static void IN(I8080_MNEM* mnem) {
