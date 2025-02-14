@@ -15,7 +15,7 @@ enum {
 
 typedef struct {
 	int id;
-	char name[32];
+	const char* name;
 	int(*init_romset)();
 } ROMSET;
 
@@ -34,15 +34,28 @@ typedef struct {
 	uint8_t* memory;
 	uint32_t memory_size;
 
-	uint8_t* rom;
-	uint8_t* ram;
 	uint8_t* video;
 
 	const MEMORY_REGION* regions;
 	int region_count;
 } MEMORY_MAP;
 
+uint8_t emu_read_byte(const MEMORY_REGION* regions, const int count, uint8_t* memory_ptr, uint16_t address);
+void emu_write_byte(const MEMORY_REGION* regions, const int count, uint8_t* memory_ptr, uint16_t address, uint8_t value);
+void emu_set_writeable_regions(const MEMORY_REGION* regions, const int count, uint8_t* memory_ptr, uint8_t value);
+
+#define get_mask(bit_pos) (1 << (bit_pos))
+
+#define set_bit(v, bit_pos)   (v |= get_mask(bit_pos))
+#define clear_bit(v, bit_pos) (v &= ~get_mask(bit_pos))
+#define get_bit(v, bit_pos)   ((v & get_mask(bit_pos)) >> bit_pos)
+
+//#define set_port_bit(v, bit_pos, x) ((x) ? set_bit(v,bit_pos) : clear_bit(v,bit_pos))
 #define set_port_bit(v, bit_pos, x) (v |= (x << bit_pos))
+
+#define LOW  0
+#define HIGH 1
+
 typedef struct {
 	int id;
 	const char name[32];
@@ -59,18 +72,18 @@ typedef struct {
 } MACHINE;
 
 typedef struct {
-	uint8_t left  : 1;
-	uint8_t right : 1;
-	uint8_t up    : 1;
-	uint8_t down  : 1;
-	uint8_t fire  : 1;
-	uint8_t start : 1;
+	uint8_t left;
+	uint8_t right;
+	uint8_t up;
+	uint8_t down;
+	uint8_t fire;
+	uint8_t start;
 } PLAYER_INPUT;
 
 typedef struct {
 
-	uint8_t insert_coin : 1;
-	uint8_t tilt_switch : 1;
+	uint8_t insert_coin;
+	uint8_t tilt_switch;
 
 	PLAYER_INPUT player1;
 	PLAYER_INPUT player2;
@@ -79,6 +92,7 @@ typedef struct {
 	uint8_t lives_min;
 	uint8_t lives_max;
 
+	uint8_t bonus_life;
 	uint8_t coin_info;
 	uint8_t preset_mode;
 	uint8_t name_reset;

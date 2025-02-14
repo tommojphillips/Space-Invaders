@@ -21,6 +21,8 @@
 #include "solfight.h"
 #include "galxwars.h"
 #include "schaser.h"
+#include "galactic.h"
+#include "indianbt.h"
 
 #define HALF_VBLANK 16666 // (2000000 / 60 / 2)
 #define FULL_VBLANK 33333 // (2000000 / 60) // 2 Mhz @ 60 hz 
@@ -37,6 +39,8 @@
 #define ROMSET_GALX_WARS    5
 #define ROMSET_OZMA_WARS    6
 #define ROMSET_SCHASER      7
+#define ROMSET_GALACTIC     8
+#define ROMSET_INDIANBT     9
 
 const ROMSET taito8080_romsets[] = {
 	{ ROMSET_INVADERS,      "space invaders",       invaders_init		},
@@ -47,6 +51,8 @@ const ROMSET taito8080_romsets[] = {
 	{ ROMSET_GALX_WARS,     "galaxy wars",          galxwars_init		},
 	{ ROMSET_OZMA_WARS,     "ozma wars",            solfight_init		},
 	{ ROMSET_SCHASER,       "space chaser",         schaser_init        },
+	{ ROMSET_GALACTIC,      "galactic",             galactic_init       },
+	{ ROMSET_INDIANBT,      "indianbt",             indianbt_init       },
 };
 
 TAITO8080 taito8080 = { 0 };
@@ -62,45 +68,17 @@ int taito8080_load_romset(int i) {
 	return 0;
 }
 int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_size) {
-	return read_file_into_buffer(filename, taito8080.mm.rom, 0x10000, offset, expected_size);
+	return read_file_into_buffer(filename, taito8080.mm.memory, 0x10000, offset, expected_size);
 }
-
-#define B_START    taito8080.mm.regions[i].start
-#define B_SIZE     taito8080.mm.regions[i].size
-#define B_END      (B_START + B_SIZE)
-#define B_MASK     (B_SIZE - 1)
-#define B_WRITABLE ((taito8080.mm.regions[i].flags & MREGION_FLAG_WRITE_PROTECTED) == 0)
-#define B_MIRRORED ((taito8080.mm.regions[i].flags & MREGION_FLAG_MIRRORED) != 0)
-#define B_PTR      taito8080.mm.memory
-#define B_COUNT    taito8080.mm.region_count
 
 uint8_t taito8080_read_byte(uint16_t address) {
-	for (int i = 0; i < B_COUNT; ++i) {
-		if ((address < B_END || B_MIRRORED) && address >= B_START) {
-			return *(uint8_t*)(B_PTR + B_START + (address & B_MASK));
-		}
-	}
-	//printf("reading from %x\n", address);
-	return 0;
+	return emu_read_byte(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, address);
 }
 void taito8080_write_byte(uint16_t address, uint8_t value) {
-	for (int i = 0; i < B_COUNT; ++i) {
-		if (B_WRITABLE && (address < B_END || B_MIRRORED) && address >= B_START) {
-			*(uint8_t*)(B_PTR + B_START + (address & B_MASK)) = value;
-			return;
-		}
-	}
-	//printf("writing %x to %x\n", value, address);
+	emu_write_byte(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, address, value);
 }
-
 void taito8080_set_writeable_regions(uint8_t value) {
-	for (int i = 0; i < B_COUNT; ++i) {
-		if (B_WRITABLE) {
-			for (int j = 0; j < B_SIZE; ++j) {
-				*(uint8_t*)(B_PTR + B_START + (j & B_MASK)) = value;
-			}
-		}
-	}
+	emu_set_writeable_regions(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, value);
 }
 
 void push_word(I8080* cpu, uint16_t value);
@@ -110,8 +88,7 @@ static void taito8080_interrupt(uint8_t rst_num) {
 	if (taito8080.cpu.flags.interrupt) {
 		taito8080.cpu.flags.interrupt = 0;
 		push_word(&taito8080.cpu, taito8080.cpu.pc);
-		uint16_t rst_address = (rst_num & 0b111) << 3;
-		taito8080.cpu.pc = rst_address;
+		taito8080.cpu.pc = (rst_num & 0b111) << 3;
 	}
 }
 void taito8080_step(int steps) {
@@ -168,9 +145,7 @@ int taito8080_init() {
 	memset(taito8080.mm.memory, 0, 0x10000);
 	taito8080.mm.memory_size = 0x10000;
 
-	taito8080.mm.rom = (taito8080.mm.memory);
-	taito8080.mm.ram = (taito8080.mm.rom + 0x2000);
-	taito8080.mm.video = (taito8080.mm.ram + 0x0400);
+	taito8080.mm.video = (taito8080.mm.memory + 0x2400);
 
 	i8080_init(&taito8080.cpu);
 	taito8080.cpu.read_byte = taito8080_read_byte;
@@ -191,8 +166,6 @@ void taito8080_destroy() {
 	if (taito8080.mm.memory != NULL) {
 		free(taito8080.mm.memory);
 		taito8080.mm.memory = NULL;
-		taito8080.mm.rom = NULL;
-		taito8080.mm.ram = NULL;
 		taito8080.mm.video = NULL;
 	}
 }
@@ -205,7 +178,7 @@ void taito8080_save_state() {
 	if (file == NULL) {
 		return;
 	}
-	fwrite(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
+	fwrite(taito8080.mm.memory + 0x2000, 1, RAM_SIZE+VIDEO_SIZE, file);
 	fwrite(&taito8080.shift_register, 1, sizeof(MB14241), file);
 	fwrite(&taito8080.cpu, 1, sizeof(I8080), file);
 	fclose(file);
@@ -219,7 +192,7 @@ void taito8080_load_state() {
 		return;
 	}
 
-	fread(taito8080.mm.ram, 1, RAM_SIZE+VIDEO_SIZE, file);
+	fread(taito8080.mm.memory + 0x2000, 1, RAM_SIZE+VIDEO_SIZE, file);
 	fread(&taito8080.shift_register, 1, sizeof(MB14241), file);
 
 	I8080 c = { 0 };
@@ -234,25 +207,28 @@ void taito8080_load_state() {
 }
 
 uint8_t taito8080_default_inp1() {
-	PORT1 port1 = {
-		.coin          = emu.controls.insert_coin,
-		.player1_start = emu.controls.player1.start,
-		.player2_start = emu.controls.player2.start,
-		.player1_fire  = emu.controls.player1.fire,
-		.player1_left  = emu.controls.player1.left,
-		.player1_right = emu.controls.player1.right,
-	};
-	return *(uint8_t*)&port1;
+	uint8_t v = 0;
+	set_port_bit(v, 0, emu.controls.insert_coin);
+	set_port_bit(v, 1, emu.controls.player2.start);
+	set_port_bit(v, 2, emu.controls.player1.start);
+	set_port_bit(v, 3, LOW);
+	set_port_bit(v, 4, emu.controls.player1.fire);
+	set_port_bit(v, 5, emu.controls.player1.left);
+	set_port_bit(v, 6, emu.controls.player1.right);
+	set_port_bit(v, 7, HIGH);
+	return v;
 }
 uint8_t taito8080_default_inp2() {
-	PORT2 port2 = {
-		.player2_fire  = emu.controls.player2.fire,
-		.player2_left  = emu.controls.player2.left,
-		.player2_right = emu.controls.player2.right,
-		.tilt          = emu.controls.tilt_switch,
-		.lives         = emu.controls.lives & 0x3
-	};
-	return *(uint8_t*)&port2;
+	uint8_t v = 0;
+	set_port_bit(v, 0, emu.controls.lives & 0x1);
+	set_port_bit(v, 1, emu.controls.lives & 0x2);
+	set_port_bit(v, 2, emu.controls.tilt_switch);
+	set_port_bit(v, 3, emu.controls.bonus_life); // extra life at 1000, 1500
+	set_port_bit(v, 4, emu.controls.player2.fire);
+	set_port_bit(v, 5, emu.controls.player2.left);
+	set_port_bit(v, 6, emu.controls.player2.right);
+	set_port_bit(v, 7, emu.controls.coin_info);
+	return v;
 }
 
 void taito8080_set_life_def(uint8_t min, uint8_t max) {
