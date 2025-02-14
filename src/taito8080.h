@@ -86,6 +86,8 @@ int taito8080_read_rom(const char* filename, uint32_t offset, uint32_t expected_
 uint8_t taito8080_default_inp1();
 uint8_t taito8080_default_inp2();
 
+void taito8080_set_life_def(uint8_t min, uint8_t max);
+
 #ifdef __cplusplus
 };
 #endif

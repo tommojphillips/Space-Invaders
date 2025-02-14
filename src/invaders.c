@@ -13,7 +13,7 @@ const MEMORY_REGION invaders_regions[] = {
 	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
 };
 
-uint8_t invaders_read_io(uint8_t port) {
+static uint8_t invaders_read_io(uint8_t port) {
 	switch (port) {
 
 		case PORT_INP1:
@@ -31,7 +31,7 @@ uint8_t invaders_read_io(uint8_t port) {
 	}
 	return 0;
 }
-void invaders_write_io(uint8_t port, uint8_t value) {
+static void invaders_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
 
 		case PORT_SHIFT_AMNT:
@@ -73,8 +73,16 @@ int invaders_init() {
 	taito8080.mm.regions = invaders_regions;
 	taito8080.mm.region_count = 2;
 
-	emu.controls.lives = 0;
-	emu.controls.lives_min = 3;
-	emu.controls.lives_max = 6;
+	taito8080_set_life_def(3, 6);
 	return invaders_load_rom();
+}
+
+static void audio_step() {
+	// t0 = log(3) (Ra+Rb) C = 1.1 (Ra+Rb) C
+	// t1 = log(2) (Rb) C = 0.693 (Rb) C
+	// t2 = log(2) (Ra+Rb) C = 0.693 (Ra+Rb) C
+
+	//int t0 = log(3);
+	//int t1 = log(2);
+	//int t2 = log(2);
 }

@@ -14,41 +14,42 @@ const MEMORY_REGION invaderspt2_regions[] = {
 	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
 
-typedef struct {
-	uint8_t undefined_1 : 1;
-	uint8_t undefined_2 : 1;
-	uint8_t undefined_3 : 1;
-	uint8_t undefined_4 : 1;
-	uint8_t undefined_5 : 1;
-	uint8_t undefined_6 : 1;
-	uint8_t name_reset  : 1; // active low
-	uint8_t undefined_7 : 1;
-} INVADERSPT2_PORT0;
-
-typedef struct {
-	uint8_t lives       : 1;  // 0b = 3 lives; 1b = 4 lives
-	uint8_t image_rot   : 1;
-	uint8_t undefined_1 : 1; // tied high
-	uint8_t preset_mode : 1; // 0b = game mode; 1b = name entry
-	uint8_t undefined_2 : 1;
-	uint8_t undefined_3 : 1;
-	uint8_t undefined_4 : 1;
-	uint8_t coin_info   : 1;
-} INVADERSPT2_PORT2;
-
 static uint8_t invaderspt2_inp0() {
-	INVADERSPT2_PORT0 port0 = {
-		.name_reset = !emu.controls.name_reset
-	};
-	return *(uint8_t*)&port0;
+	uint8_t v = 0;
+	set_port_bit(v, 0, LOW);
+	set_port_bit(v, 1, LOW);
+	set_port_bit(v, 2, HIGH);
+	set_port_bit(v, 3, LOW);
+	set_port_bit(v, 4, HIGH);
+	set_port_bit(v, 5, HIGH);
+	set_port_bit(v, 6, !emu.controls.name_reset);
+	set_port_bit(v, 7, HIGH);
+	return v;
 }
+static uint8_t invaderspt2_inp1() {
+	uint8_t v = 0;
+	set_port_bit(v, 0, emu.controls.insert_coin);
+	set_port_bit(v, 1, emu.controls.player2.start);
+	set_port_bit(v, 2, emu.controls.player1.start);
+	set_port_bit(v, 3, LOW);
+	set_port_bit(v, 4, emu.controls.player1.fire);
+	set_port_bit(v, 5, emu.controls.player1.left);
+	set_port_bit(v, 6, emu.controls.player1.right);
+	set_port_bit(v, 7, HIGH);
+	return v;
+}
+
 static uint8_t invaderspt2_inp2() {
-	INVADERSPT2_PORT2 port2 = {
-		.lives       = emu.controls.lives & 0x1,
-		.coin_info   = emu.controls.coin_info,
-		.preset_mode = emu.controls.preset_mode,
-	};
-	return *(uint8_t*)&port2;
+	uint8_t v = 0;
+	set_port_bit(v, 0, emu.controls.lives & 0x1); // 0b = 3 lives; 1b = 4 lives
+	set_port_bit(v, 1, LOW); // image rotation
+	set_port_bit(v, 2, emu.controls.tilt_switch);
+	set_port_bit(v, 3, emu.controls.preset_mode); // 0b = game mode; 1b = name entry
+	set_port_bit(v, 4, emu.controls.player2.fire);
+	set_port_bit(v, 5, emu.controls.player2.left);
+	set_port_bit(v, 6, emu.controls.player2.right);
+	set_port_bit(v, 7, emu.controls.coin_info);
+	return v;
 }
 
 uint8_t invaderspt2_read_io(uint8_t port) {
@@ -58,7 +59,7 @@ uint8_t invaderspt2_read_io(uint8_t port) {
 			return invaderspt2_inp0();
 
 		case PORT_INP1:
-			return taito8080_default_inp1();
+			return invaderspt2_inp1();
 
 		case PORT_INP2:
 			return invaderspt2_inp2();
@@ -83,15 +84,15 @@ void invaderspt2_write_io(uint8_t port, uint8_t value) {
 			mb14241_data(&taito8080.shift_register, value);
 			break;
 
-		case PORT_SOUND1: /* Bank1 Sound */
+		case PORT_SOUND1: // Bank1 Sound
 			taito8080.io_output.sound1 = value;
 			break;
 
-		case PORT_SOUND2: /* Bank2 Sound */
+		case PORT_SOUND2: // Bank2 Sound
 			taito8080.io_output.sound2 = value;
 			break;
 
-		case PORT_WATCHDOG: /*WATCHDOG*/
+		case PORT_WATCHDOG: // WATCHDOG
 			taito8080.io_output.watchdog = value;
 			break;
 
@@ -116,8 +117,6 @@ int invaderspt2_init() {
 	taito8080.mm.region_count = 3;
 	taito8080.io_input.input0 = 0x40;
 
-	emu.controls.lives = 0;
-	emu.controls.lives_min = 3;
-	emu.controls.lives_max = 4;
+	taito8080_set_life_def(3, 4);
 	return invaderspt2_load_rom();
 }

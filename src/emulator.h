@@ -42,6 +42,7 @@ typedef struct {
 	int region_count;
 } MEMORY_MAP;
 
+#define set_port_bit(v, bit_pos, x) (v |= (x << bit_pos))
 typedef struct {
 	int id;
 	const char name[32];

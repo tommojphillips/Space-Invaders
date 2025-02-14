@@ -10,25 +10,29 @@
 
 const MEMORY_REGION galxwars_regions[] = {
 	{ .start = 0x0000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
-	{ .start = 0x1000, .size = 0x3000, .flags = MREGION_FLAG_NONE            },
+	{ .start = 0x2000, .size = 0x2000, .flags = MREGION_FLAG_NONE            },
 	{ .start = 0x4000, .size = 0x1000, .flags = MREGION_FLAG_WRITE_PROTECTED },
 };
+
+static uint8_t galxwars_inp0() {
+	uint8_t v = 0;
+	set_port_bit(v, 0, LOW);
+	set_port_bit(v, 1, LOW);
+	set_port_bit(v, 2, LOW);
+	set_port_bit(v, 3, LOW);
+	set_port_bit(v, 4, LOW);
+	set_port_bit(v, 5, LOW);
+	set_port_bit(v, 6, HIGH);
+	set_port_bit(v, 7, LOW);
+	return v;
+}
 
 uint8_t galxwars_read_io(uint8_t port) {
 	switch (port) {
 
 		case PORT_INP0:
-			return taito8080.io_input.input0;
+			return galxwars_inp0();
 
-		//case PORT_INP1:
-		//	return *(uint8_t*)&taito8080.io_input.input1;
-
-		//case PORT_INP2:
-		//	return *(uint8_t*)&taito8080.io_input.input2;
-
-		//case PORT_SHIFT_REG:
-		//	return mb14241_shift(&taito8080.shift_register);
-	
 		default:
 			printf("Reading from undefined port: %02X\n", port);
 			break;
@@ -37,26 +41,6 @@ uint8_t galxwars_read_io(uint8_t port) {
 }
 void galxwars_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
-
-		//case PORT_SHIFT_AMNT:
-		//	mb14241_amount(&taito8080.shift_register, value);
-		//	break;
-
-		//case PORT_SHIFT_DATA:
-		//	mb14241_data(&taito8080.shift_register, value);
-		//	break;
-
-		//case PORT_SOUND1: /* Bank1 Sound */
-		//	taito8080.io_output.sound1 = value;
-		//	break;
-
-		//case PORT_SOUND2: /* Bank2 Sound */
-		//	taito8080.io_output.sound2 = value;
-		//	break;
-	
-		//case PORT_WATCHDOG: /*WATCHDOG*/
-		//	taito8080.io_output.watchdog = value;
-		//	break;
 
 		default:
 			printf("Writing to undefined port: %02X = %02X\n", port, value);
@@ -80,8 +64,6 @@ int galxwars_init() {
 	taito8080.mm.region_count = 3;
 	taito8080.io_input.input0 = 0x40;
 
-	emu.controls.lives = 0;
-	emu.controls.lives_min = 3;
-	emu.controls.lives_max = 6;
+	taito8080_set_life_def(3, 6);
 	return galxwars_load_rom();
 }

@@ -254,3 +254,9 @@ uint8_t taito8080_default_inp2() {
 	};
 	return *(uint8_t*)&port2;
 }
+
+void taito8080_set_life_def(uint8_t min, uint8_t max) {
+	emu.controls.lives = 0;
+	emu.controls.lives_min = min;
+	emu.controls.lives_max = max;
+}

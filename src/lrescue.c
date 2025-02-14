@@ -76,8 +76,6 @@ int lrescue_init() {
 	taito8080.mm.regions = lrescue_regions;
 	taito8080.mm.region_count = 3;
 
-	emu.controls.lives = 0;
-	emu.controls.lives_min = 3;
-	emu.controls.lives_max = 6;
+	taito8080_set_life_def(3, 6);
 	return lrescue_load_rom();
 }
