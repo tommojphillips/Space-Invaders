@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\lib\i8080\i8080.c" />
+    <ClCompile Include="..\lib\i8080\i8080_mnem.c" />
     <ClCompile Include="..\lib\imgui\backends\imgui_impl_sdl2.cpp" />
     <ClCompile Include="..\lib\imgui\backends\imgui_impl_sdlrenderer2.cpp" />
     <ClCompile Include="..\lib\imgui\imgui.cpp" />
@@ -177,6 +179,8 @@
     <ClCompile Include="..\src\main.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lib\i8080\i8080.h" />
+    <ClInclude Include="..\lib\i8080\i8080_mnem.h" />
     <ClInclude Include="..\src\altair8800.h" />
     <ClInclude Include="..\src\ballbomb.h" />
     <ClInclude Include="..\src\cpm.h" />
