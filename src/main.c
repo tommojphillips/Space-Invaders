@@ -9,7 +9,6 @@
 #include "i8080.h"
 #include "taito8080.h"
 #include "cpm.h"
-#include "altair8800.h"
 
 #include "emulator.h"
 

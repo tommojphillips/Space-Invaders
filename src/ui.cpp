@@ -62,6 +62,7 @@ static void debug_window();
 static void decode_window();
 static void stack_window();
 static void hl_window();
+static void bc_window();
 static void de_window();
 static void dip_switch_window();
 static void dip_switch8(uint8_t* v, uint8_t id, const char* dip_name);
@@ -114,6 +115,9 @@ void imgui_update() {
 	}
 	if (ui_state.show_hl_window) {
 		hl_window();
+	}
+	if (ui_state.show_bc_window) {
+		bc_window();
 	}
 	if (ui_state.show_de_window) {
 		de_window();
@@ -174,6 +178,21 @@ static void stack_window() {
 static void hl_window() {
 	Begin("HL", (bool*)&ui_state.show_hl_window);
 	uint16_t ptr = ((taito8080.cpu.registers[REG_H] << 8) | taito8080.cpu.registers[REG_L]);
+	uint16_t k = 0;
+	for (int i = 0; i < 10; ++i) {
+		Text("%04X: ", ptr + k);
+		SameLine();
+		for (int j = 0; j < 4; ++j) {
+			Text("%02X ", taito8080.cpu.read_byte(ptr + k));
+			if (j < 3) SameLine();
+			k++;
+		}
+	}
+	End();
+}
+static void bc_window() {
+	Begin("BC", (bool*)&ui_state.show_bc_window);
+	uint16_t ptr = ((taito8080.cpu.registers[REG_B] << 8) | taito8080.cpu.registers[REG_C]);
 	uint16_t k = 0;
 	for (int i = 0; i < 10; ++i) {
 		Text("%04X: ", ptr + k);
@@ -275,6 +294,7 @@ static void debug_window() {
 	Separator();
 	Text("PSW: %02X%02X", taito8080.cpu.registers[REG_A], taito8080.cpu.registers[REG_FLAGS]);
 	
+#if 0
 	Separator();
 	Text("SF: %01X ", taito8080.cpu.status_flags->s);
 	SameLine();
@@ -283,9 +303,25 @@ static void debug_window() {
 	SameLine();
 	Text("CF: %01X ", taito8080.cpu.status_flags->c);
 	Text("AF: %01X ", taito8080.cpu.status_flags->h);
+#else
+	bool tmp;
 
+	Separator();
+	tmp = taito8080.cpu.status_flags->s;
+	if (Checkbox("SF", &tmp)) taito8080.cpu.status_flags->s ^= 1;
+	SameLine();
+	tmp = taito8080.cpu.status_flags->z;
+	if (Checkbox("ZF", &tmp)) taito8080.cpu.status_flags->z ^= 1;
+	tmp = taito8080.cpu.status_flags->p;
+	if (Checkbox("PF", &tmp)) taito8080.cpu.status_flags->p ^= 1;
+	SameLine();
+	tmp = taito8080.cpu.status_flags->c;
+	if (Checkbox("CF", &tmp)) taito8080.cpu.status_flags->c ^= 1;
+	tmp = taito8080.cpu.status_flags->h;
+	if (Checkbox("AF", &tmp)) taito8080.cpu.status_flags->h ^= 1;
+#endif
 	Separator();	
-	bool tmp = taito8080.cpu.flags.interrupt;
+	tmp = taito8080.cpu.flags.interrupt;
 	if (Checkbox("INT", &tmp)) taito8080.cpu.flags.interrupt = tmp;
 	SameLine();
 	tmp = taito8080.cpu.flags.halt;
@@ -313,6 +349,10 @@ static void menu_window() {
 	SameLine();
 	if (Button("HL")) {
 		ui_state.show_hl_window ^= 1;
+	}
+	SameLine();
+	if (Button("BC")) {
+		ui_state.show_bc_window ^= 1;
 	}
 	SameLine();
 	if (Button("DE")) {

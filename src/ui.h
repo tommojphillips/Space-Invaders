@@ -10,6 +10,7 @@ typedef struct {
 	int show_debug_window;
 	int show_decode_window;
 	int show_hl_window;
+	int show_bc_window;
 	int show_de_window;
 	int show_stack_window;
 	int show_dip_switch_window;
