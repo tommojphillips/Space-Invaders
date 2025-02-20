@@ -98,17 +98,17 @@
     <ClCompile Include="..\src\taito8080.c">
       <Filter>machines</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\galactic.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\indianbt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib\i8080\i8080.c">
       <Filter>i8080</Filter>
     </ClCompile>
     <ClCompile Include="..\lib\i8080\i8080_mnem.c">
       <Filter>i8080</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\galactic.c">
+      <Filter>romsets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\indianbt.c">
+      <Filter>romsets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,17 +157,17 @@
     <ClInclude Include="..\src\taito8080.h">
       <Filter>machines</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\galactic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\indianbt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\i8080\i8080.h">
       <Filter>i8080</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\i8080\i8080_mnem.h">
       <Filter>i8080</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\galactic.h">
+      <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\indianbt.h">
+      <Filter>romsets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
