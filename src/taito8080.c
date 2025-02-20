@@ -78,7 +78,7 @@ void taito8080_write_byte(uint16_t address, uint8_t value) {
 	emu_write_byte(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, address, value);
 }
 void taito8080_set_writeable_regions(uint8_t value) {
-	emu_set_writeable_regions(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, value);
+	//emu_set_writeable_regions(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, value);
 }
 
 void push_word(I8080* cpu, uint16_t value);
