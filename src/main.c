@@ -15,7 +15,6 @@
 
 #define CPM			0
 #define TAITO8080	1
-#define ALTAIR_8800	2
 
 const MACHINE machines[] = {
 	{ 
@@ -47,20 +46,6 @@ const MACHINE machines[] = {
 	  .romsets      = taito8080_romsets,
 	  .romset_count = 10
 	},
-	{ 
-	  .id           = ALTAIR_8800,
-	  .name         = "Altair 8800",
-	  .init         = altair8800_init,
-	  .destroy      = altair8800_destroy,
-	  .reset        = altair8800_reset,
-	  .update       = altair8800_update,
-	  .vblank       = altair8800_vblank,
-	  .save_state   = NULL,
-	  .load_state   = NULL,
-	  .load_romset  = altair8800_load_rom,
-	  .romsets      = altair8800_roms,
-	  .romset_count = 1
-	},
 };
 
 static float render_elapsed_time;
@@ -83,7 +68,6 @@ int main(int argc, char** argv) {
 
 	emu.machine = &machines[TAITO8080];
 	//emu.machine = &machines[CPM];
-	//emu.machine = &machines[ALTAIR_8800];
 	emu.machine->init();
 
 	while (window_state->window_open) {
