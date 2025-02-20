@@ -87,7 +87,7 @@ The project is built in Visual Studio 2022
   1. Clone the repo  
   
   ```
-  git clone https://github.com/tommojphillips/Space-Invaders.git
+  git clone --recurse-submodules https://github.com/tommojphillips/Space-Invaders.git
   ```
   
   2. CD to `lib/` dir
@@ -111,7 +111,7 @@ The project is built in Visual Studio 2022
   5. Download SDL2 VC package [`SDL2-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-VC.zip) (direct download link)
      - Extract and copy the `include` and `lib` folders into `Space-Invaders/lib/SDL2` you will have to create the `SDL2` directory
 
- 6. Open `vc\Space-Invaders.sln` in visual studio and build and run
+ 6. Open `vs\Space-Invaders.sln` in visual studio and build and run
 
 The project directory structure should look like this:
 
@@ -135,7 +135,7 @@ Space-Invaders\
       |                  | -- lib\        
       | -- src\
       |
-      | -- vc\
+      | -- vs\
       |       | -- Space-Invaders.sln
       |       | -- Space-Invaders.vcxproj
 ```
