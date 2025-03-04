@@ -67,7 +67,6 @@ void solfight_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
 
 		case PORT_INP0:
-			taito8080.io_input.input0 = value;
 			break;
 
 		case PORT_SOUND1: /* Bank1 Sound */

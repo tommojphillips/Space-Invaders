@@ -33,15 +33,10 @@ typedef struct {
 } OUTPUT_PORT;
 
 typedef struct {
-	uint8_t input0;
-} INPUT_PORT;
-
-typedef struct {
 	I8080 cpu;
 	MEMORY_MAP mm;
 	MB14241 shift_register;
 	OUTPUT_PORT io_output;
-	INPUT_PORT io_input;
 } TAITO8080;
 
 #ifdef __cplusplus

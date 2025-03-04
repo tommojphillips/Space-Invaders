@@ -115,7 +115,6 @@ int invaderspt2_init() {
 	taito8080.cpu.write_io = invaderspt2_write_io;
 	taito8080.mm.regions = invaderspt2_regions;
 	taito8080.mm.region_count = 3;
-	taito8080.io_input.input0 = 0x40;
 
 	taito8080_set_life_def(3, 4);
 	return invaderspt2_load_rom();

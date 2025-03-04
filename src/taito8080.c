@@ -77,9 +77,6 @@ uint8_t taito8080_read_byte(uint16_t address) {
 void taito8080_write_byte(uint16_t address, uint8_t value) {
 	emu_write_byte(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, address, value);
 }
-void taito8080_set_writeable_regions(uint8_t value) {
-	//emu_set_writeable_regions(taito8080.mm.regions, taito8080.mm.region_count, taito8080.mm.memory, value);
-}
 
 void push_word(I8080* cpu, uint16_t value);
 
@@ -110,13 +107,10 @@ void taito8080_tick(uint32_t cycles) {
 void taito8080_reset() {
 	i8080_reset(&taito8080.cpu);
 	mb14241_reset(&taito8080.shift_register);
-	taito8080_set_writeable_regions(0);
 }
 
 void taito8080_update() {
-
-	if (taito8080.cpu.flags.halt) return;
-
+	
 	if (emu.single_step == SINGLE_STEP_NONE) {
 		taito8080_tick(HALF_VBLANK);
 		taito8080_interrupt(1);
