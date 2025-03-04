@@ -46,6 +46,7 @@ void inject_bdos_signals() {
 	// inject "out 0,a" at 0x0000 (signal to stop the test)
 	taito8080.mm.memory[0x0000] = 0xD3; /* OUT opcode */
 	taito8080.mm.memory[0x0001] = 0x00; /* PORT 0 */
+	taito8080.mm.memory[0x0002] = 0x76; /* HLT */
 
 	// inject "out 1,a" at 0x0005 (signal to output some characters)
 	taito8080.mm.memory[0x0005] = 0xD3; /* OUT opcode */
@@ -82,7 +83,7 @@ int exm8080_init() {
 	return 0;
 }
 int cpm_load_test(int i) {
-	printf("Loading test: %s\n", cpm_tests[i].name);
+	printf("Loading program: %s\n", cpm_tests[i].name);
 	if (cpm_tests[i].init_romset() != 0) {
 		return 1;
 	}
@@ -91,10 +92,9 @@ int cpm_load_test(int i) {
 }
 
 static void p_term_cpm() {
-	taito8080.cpu.flags.halt = 0b1;
-	fprintf(stderr, "\n");
+	fprintf(stderr, "\nCPM program terminated\n");
 }
-static void c_write() {
+static void c_write_char() {
 	fprintf(stderr, "%c", taito8080.cpu.registers[REG_E]);
 }
 static void c_write_str() {
@@ -106,39 +106,36 @@ static void c_write_str() {
 	}
 }
 
-static void cpu_log() {
-	cpu_mnem(&mnem, taito8080.cpu.pc);
-	printf("PC: %04X, AF: %02X%02X, BC: %02X%02X, DE: %02X%02X, HL: %02X%02X, SP: %04X, CYC: %d    (%02X %02X %02X %02X) %s\n", 
-		taito8080.cpu.pc,
-		taito8080.cpu.registers[REG_A], taito8080.cpu.registers[REG_FLAGS],
-		taito8080.cpu.registers[REG_B], taito8080.cpu.registers[REG_C],
-		taito8080.cpu.registers[REG_D], taito8080.cpu.registers[REG_E],
-		taito8080.cpu.registers[REG_H], taito8080.cpu.registers[REG_L],
-		taito8080.cpu.sp,
-		taito8080.cpu.cycles,
-		taito8080.cpu.read_byte(taito8080.cpu.pc+0),
-		taito8080.cpu.read_byte(taito8080.cpu.pc+1),
-		taito8080.cpu.read_byte(taito8080.cpu.pc+2),
-		taito8080.cpu.read_byte(taito8080.cpu.pc+3),
-		mnem.str);
-}
-static void cpm_execute() {
-	//cpu_log();
-	i8080_execute(&taito8080.cpu);
+static void bdos_function(uint8_t func) {
+	switch (func) {
+		case 0x00:
+			p_term_cpm();
+			break;
+
+		case 0x02:
+			c_write_char();
+			break;
+
+		case 0x09:
+			c_write_str();
+			break;
+
+		default:
+			printf("BDOS function %x not implemented\n", func);
+			break;
+	}
 }
 
 static void cpu_step(int steps) {
-	if (emu.single_step == SINGLE_STEPPING) {
-		emu.single_step = SINGLE_STEP_AWAIT;
-		int c = 0;
-		while (!taito8080.cpu.flags.halt && c < steps) {
-			cpm_execute();
-		}
+	int c = 0;
+	while (c < steps) {
+		++c;
+		i8080_execute(&taito8080.cpu);
 	}
 }
 static void cpu_tick(uint32_t cycles) {
-	while (!taito8080.cpu.flags.halt && taito8080.cpu.cycles < cycles) {
-		cpm_execute();
+	while (taito8080.cpu.cycles < cycles) {
+		i8080_execute(&taito8080.cpu);
 	}
 }
 
@@ -160,25 +157,8 @@ void cpm_write_io(uint8_t port, uint8_t value) {
 			break;
 
 		case 0x01:
-			switch (taito8080.cpu.registers[REG_C]) {
-				case 0x00:
-					p_term_cpm();
-					break;
-
-				case 0x02:
-					c_write();
-					break;
-
-				case 0x09:
-					c_write_str();
-					break;
-
-				default:
-					printf("BDOS function %x not implemented\n", taito8080.cpu.registers[REG_C]);
-					break;
-
-			}
-			break; /* OUTPUT_RESULT */
+			bdos_function(taito8080.cpu.registers[REG_C]);
+			break;
 
 		default:
 			printf("Writing to undefined port: %02X = %02X\n", port, value);
@@ -194,13 +174,14 @@ void cpm_reset() {
 }
 void cpm_update() {
 
-	if (taito8080.cpu.flags.halt) return;
-
 	if (emu.single_step == SINGLE_STEP_NONE) {		
 		cpu_tick(VBLANK_RATE);
 	}
 	else {
-		cpu_step(emu.single_step_increment);
+		if (emu.single_step == SINGLE_STEPPING) {
+			emu.single_step = SINGLE_STEP_AWAIT;
+			cpu_step(emu.single_step_increment);
+		}
 	}
 }
 
