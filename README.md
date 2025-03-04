@@ -119,9 +119,6 @@ Space-Invaders\
       |        | -- imgui\
       |        |          | -- backends\
       |        |
-      |        | -- imgui-club\
-      |        |          | -- imgui_memory_editor\
-      |        |
       |        | -- SDL2\
       |                  | -- include\
       |                  | -- lib\        
