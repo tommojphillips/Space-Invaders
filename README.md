@@ -102,16 +102,10 @@ The project is built in Visual Studio 2022
   git clone --depth 1 --branch v1.91.6 https://github.com/ocornut/imgui.git
   ```
   
-  4. Clone `imgui-club` into `lib/` dir
-
-  ```
-  git clone https://github.com/ocornut/imgui_club.git
-  ```
- 
-  5. Download SDL2 VC package [`SDL2-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-VC.zip) (direct download link)
+ 4. Download SDL2 VC package [`SDL2-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-VC.zip) (direct download link)
      - Extract and copy the `include` and `lib` folders into `Space-Invaders/lib/SDL2` you will have to create the `SDL2` directory
 
- 6. Open `vs\Space-Invaders.sln` in visual studio and build and run
+ 5. Open `vs\Space-Invaders.sln` in visual studio and build and run
 
 The project directory structure should look like this:
 
