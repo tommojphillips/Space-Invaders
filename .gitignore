@@ -367,3 +367,4 @@ lib/SDL2_Image
 lib/imgui
 lib/imgui_club
 /vs/cpp.hint
+/vs/imgui.ini
