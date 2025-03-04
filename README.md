@@ -32,8 +32,6 @@ Both player 1 and player 2 controls are mapped to the same keys.
 | Esc         | Toggle Main Menu           |
 | F11         | Full Screen                |
 | P           | Pause/Unpause              |
-| I           | Spawn Space Ship           |
-| U           | Kill Space Ship            |
 | F5          | Save Machine State         |
 | F9          | Load Machine State         |
 
