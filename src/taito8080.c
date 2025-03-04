@@ -90,18 +90,14 @@ static void taito8080_interrupt(uint8_t rst_num) {
 }
 void taito8080_step(int steps) {
 	int c = 0;
-	while (!taito8080.cpu.flags.halt && c < steps) {
+	while (c < steps) {
 		++c;
-		if (i8080_execute(&taito8080.cpu) != 0) {
-			break;
-		}
+		i8080_execute(&taito8080.cpu);
 	}
 }
 void taito8080_tick(uint32_t cycles) {
-	while (!taito8080.cpu.flags.halt && taito8080.cpu.cycles < cycles) {
-		if (i8080_execute(&taito8080.cpu) != 0) {
-			break;
-		}
+	while (taito8080.cpu.cycles < cycles) {
+		i8080_execute(&taito8080.cpu);
 	}
 }
 void taito8080_reset() {
