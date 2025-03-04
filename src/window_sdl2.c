@@ -7,7 +7,6 @@
 
 #include "SDL.h"
 #include "SDL_syswm.h"
-#include "SDL_image.h"
 
 #include "window_sdl2.h"
 
