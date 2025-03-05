@@ -57,21 +57,6 @@ void emu_set_writeable_regions(const MEMORY_REGION* regions, const int count, ui
 #define HIGH 1
 
 typedef struct {
-	int id;
-	const char name[32];
-	int(*init)();
-	void(*destroy)();
-	void(*reset)();
-	void(*update)();
-	void(*vblank)();
-	void(*save_state)();
-	void(*load_state)();
-	int(*load_romset)(int index);
-	const ROMSET* romsets;
-	int romset_count;
-} MACHINE;
-
-typedef struct {
 	uint8_t left;
 	uint8_t right;
 	uint8_t up;
@@ -100,9 +85,9 @@ typedef struct {
 } CONTROLS;
 
 typedef struct {
-	const MACHINE* machine;
 	CONTROLS controls;
 	int romset_index;
+	int romset_count;
 	int single_step;
 	int single_step_increment;
 } EMULATOR;

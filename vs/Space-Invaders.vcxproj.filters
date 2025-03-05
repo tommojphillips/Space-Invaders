@@ -62,9 +62,6 @@
     <ClCompile Include="..\src\emulator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu_tests.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\mb14241.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,9 +88,6 @@
     </ClCompile>
     <ClCompile Include="..\src\schaser.c">
       <Filter>romsets</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cpm.c">
-      <Filter>machines</Filter>
     </ClCompile>
     <ClCompile Include="..\src\taito8080.c">
       <Filter>machines</Filter>
@@ -150,9 +144,6 @@
     </ClInclude>
     <ClInclude Include="..\src\schaser.h">
       <Filter>romsets</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cpm.h">
-      <Filter>machines</Filter>
     </ClInclude>
     <ClInclude Include="..\src\taito8080.h">
       <Filter>machines</Filter>

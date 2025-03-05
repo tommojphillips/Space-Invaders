@@ -2,50 +2,10 @@
  * Github: https:\\github.com\tommojphillips
  */
 
-#include "stdio.h"
-
 #include "window_sdl2.h"
 #include "ui.h"
 #include "i8080.h"
 #include "taito8080.h"
-#include "cpm.h"
-
-#include "emulator.h"
-
-#define CPM			0
-#define TAITO8080	1
-
-const MACHINE machines[] = {
-	{ 
-	  .id           = CPM,
-	  .name         = "CP/M-80",
-	  .init         = cpm_init,
-	  .destroy      = cpm_destroy,
-	  .reset        = cpm_reset,
-	  .update       = cpm_update,
-	  .vblank       = cpm_vblank,
-	  .save_state   = NULL,
-	  .load_state   = NULL,
-	  .load_romset  = cpm_load_test,
-	  .romsets      = cpm_tests,
-	  .romset_count = 7
-	},
-	
-	{ 
-	  .id           = TAITO8080, 
-	  .name         = "taito i8080",
-	  .init         = taito8080_init,
-	  .destroy      = taito8080_destroy,
-	  .reset        = taito8080_reset,
-	  .update       = taito8080_update,
-	  .vblank       = taito8080_vblank,
-	  .save_state   = taito8080_save_state,
-	  .load_state   = taito8080_load_state,
-	  .load_romset  = taito8080_load_romset,
-	  .romsets      = taito8080_romsets,
-	  .romset_count = 10
-	},
-};
 
 static float render_elapsed_time;
 static void start_frame() {
@@ -64,29 +24,23 @@ int main(int argc, char** argv) {
 	sdl_create_window();
 	imgui_init();
 	imgui_create_renderer();
-
-	emu.machine = &machines[TAITO8080];
-	//emu.machine = &machines[CPM];
-	emu.machine->init();
+	taito8080_init();
 
 	while (window_state->window_open) {
 		start_frame();
 		sdl_update();
 		imgui_update();
 
-		emu.machine->update();
+		taito8080_update();
 
 		if (16.666f < render_elapsed_time) {
-			render_elapsed_time -= 16.666f;
+			render_elapsed_time = 0;// -= 16.666f;
 			sdl_render();
-
-			if (emu.machine->vblank) {
-				emu.machine->vblank();
-			}
+			taito8080_vblank();
 		}
 	}
 
-	emu.machine->destroy();
+	taito8080_destroy();
 	imgui_destroy();
 	sdl_destroy();
 

@@ -15,7 +15,6 @@ using namespace ImGui;
 #include "i8080.h"
 #include "i8080_mnem.h"
 #include "taito8080.h"
-#include "cpm.h"
 #include "emulator.h"
 
 #define renderer_new_frame \
@@ -372,14 +371,14 @@ static void menu_window() {
 		dip_switch_window();
 	}
 	else {
-		if (BeginCombo("###rom_set", emu.machine->romsets[emu.romset_index].name)) {
-			for (int i = 0; i < emu.machine->romset_count; ++i) {
-				if (Selectable(emu.machine->romsets[i].name)) {
-					if (emu.machine->load_romset(i) == 0) {
-						emu.machine->reset();
+		if (BeginCombo("###rom_set", taito8080_romsets[emu.romset_index].name)) {
+			for (int i = 0; i < emu.romset_count; ++i) {
+				if (Selectable(taito8080_romsets[i].name)) {
+					if (taito8080_load_romset(i) == 0) {
+						taito8080_reset();
 					}
 					else {
-						emu.machine->load_romset(emu.romset_index); /*reload roms/reconfig for current system.*/
+						taito8080_load_romset(emu.romset_index); /*reload roms/reconfig for current system.*/
 					}
 				}
 			}
@@ -389,7 +388,7 @@ static void menu_window() {
 		Separator();
 
 		if (Button("Reset Machine")) {
-			emu.machine->reset();
+			taito8080_reset();
 		}
 	}
 

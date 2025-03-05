@@ -146,6 +146,7 @@ int taito8080_init() {
 
 	taito8080_reset();
 
+	emu.romset_count = 10;
 	if (taito8080_load_romset(ROMSET_INVADERS) != 0) {
 		return 1;
 	}

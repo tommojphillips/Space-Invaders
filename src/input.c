@@ -76,14 +76,14 @@ static void game_input(uint8_t v) {
 			break;
 
 		case SDLK_r:
-			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) emu.machine->reset();
+			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) taito8080_reset();
 			break;
 
 		case SDLK_F5:
-			if (v && emu.machine->save_state) emu.machine->save_state();
+			if (v) taito8080_save_state();
 			break;
 		case SDLK_F9:
-			if (v && emu.machine->load_state) emu.machine->load_state();
+			if (v) taito8080_load_state();
 			break;
 
 		case SDLK_p:
