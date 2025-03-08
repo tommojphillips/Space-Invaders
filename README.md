@@ -3,8 +3,6 @@
 An Emulator for The Original 1978 Space Invaders Arcade Machine.
 Written in C using SDL2 for the renderering.
 
-A Windows binary is available for download on the releases page. See: [Releases](https://github.com/tommojphillips/Space-Invaders/releases)
-
  - [Input](#input)
  - [Usage](#usage)
  - [Building](#building)
