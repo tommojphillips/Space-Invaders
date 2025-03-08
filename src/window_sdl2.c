@@ -9,17 +9,13 @@
 #include "SDL_syswm.h"
 
 #include "window_sdl2.h"
+#include "taito8080.h"
 
 SDL_STATE sdl = { 0 };
 WINDOW_CFG* window_cfg = NULL;
 WINDOW_STATE* window_state = NULL;
 
 static void set_default_settings();
-
-#ifndef NO_UI
-void imgui_toggle_menu();
-void imgui_process_event(); 
-#endif
 
 void display_draw_buffer();
 void display_process_event();
@@ -43,16 +39,16 @@ void sdl_init() {
 	}
 	memset(window_state, 0, sizeof(WINDOW_STATE));
 
+	set_default_settings();
+}
+void sdl_create_window() {
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("Failed to initialize SDL\n");
 		exit(1);
 	}
 
-	set_default_settings();
-}
-void sdl_create_window() {
-
-	sdl.game_window = SDL_CreateWindow("Space Invaders - i8080",
+	sdl.game_window = SDL_CreateWindow(romsets[emu.romset_index].name,
 		window_state->win_x, window_state->win_y, 
 		window_state->win_w, window_state->win_h,
 		SDL_WINDOW_RESIZABLE | window_state->last_window_state);
@@ -82,11 +78,6 @@ void sdl_destroy() {
 		window_state = NULL;
 	}
 
-	if (sdl.icon_surface != NULL) {
-		SDL_FreeSurface(sdl.icon_surface);
-		sdl.icon_surface = NULL;
-	}
-
 	if (sdl.game_renderer != NULL) {
 		SDL_DestroyRenderer(sdl.game_renderer);
 		sdl.game_renderer = NULL;
@@ -102,9 +93,6 @@ void sdl_destroy() {
 void sdl_update() {
 	while (SDL_PollEvent(&sdl.e)) {
 		sdl_process_event();
-#ifndef NO_UI
-		imgui_process_event();
-#endif
 		display_process_event();
 		input_process_event();
 	}
@@ -120,12 +108,6 @@ void sdl_process_event() {
 	switch (sdl.e.type) {
 		case SDL_KEYDOWN: {
 			switch (sdl.e.key.keysym.sym) {
-#ifndef NO_UI
-				case SDLK_ESCAPE:
-					imgui_toggle_menu();
-					break;
-#endif
-
 				case SDLK_F11: {
 					if (window_state->last_window_state != SDL_WINDOW_FULLSCREEN_DESKTOP) {
 						window_state->last_window_state = SDL_WINDOW_FULLSCREEN_DESKTOP;

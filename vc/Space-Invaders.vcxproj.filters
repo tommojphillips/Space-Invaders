@@ -12,9 +12,6 @@
     <Filter Include="romsets">
       <UniqueIdentifier>{2a78aba0-beae-4326-916f-d339f4e1d2fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="machines">
-      <UniqueIdentifier>{c2d448bf-daa8-43c9-86f6-ffd466c9947c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="i8080">
       <UniqueIdentifier>{fc8acc70-65a1-4fbb-950e-75ebedf01e34}</UniqueIdentifier>
     </Filter>
@@ -26,9 +23,6 @@
     <ClCompile Include="..\src\window_sdl2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\display.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,9 +30,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\emulator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mb14241.c">
@@ -68,9 +59,6 @@
     <ClCompile Include="..\src\schaser.c">
       <Filter>romsets</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\taito8080.c">
-      <Filter>machines</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib\i8080\i8080.c">
       <Filter>i8080</Filter>
     </ClCompile>
@@ -83,18 +71,15 @@
     <ClCompile Include="..\src\indianbt.c">
       <Filter>romsets</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\taito8080.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\window_sdl2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\file.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\emulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\mb14241.h">
@@ -124,9 +109,6 @@
     <ClInclude Include="..\src\schaser.h">
       <Filter>romsets</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\taito8080.h">
-      <Filter>machines</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\i8080\i8080.h">
       <Filter>i8080</Filter>
     </ClInclude>
@@ -138,6 +120,9 @@
     </ClInclude>
     <ClInclude Include="..\src\indianbt.h">
       <Filter>romsets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\taito8080.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include <stdio.h>
 
 #include "file.h"
 #include "taito8080.h"
@@ -23,7 +22,7 @@ uint8_t spclaser_read_io(uint8_t port) {
 			return taito8080_default_inp2();
 
 		default:
-			printf("Reading from undefined port: %02X\n", port);
+			//printf("Reading from undefined port: %02X\n", port);
 			break;
 	}
 	return 0;
@@ -32,15 +31,15 @@ void spclaser_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
 
 		case PORT_SOUND1: /* Bank1 Sound */
-			taito8080.io_output.sound1 = value;
+			emu.io_output.sound1 = value;
 			break;
 		
 		case PORT_WATCHDOG: /*WATCHDOG*/
-			taito8080.io_output.watchdog = value;
+			emu.io_output.watchdog = value;
 			break;
 
 		default:
-			printf("Writing to undefined port: %02X = %02X\n", port, value);
+			//printf("Writing to undefined port: %02X = %02X\n", port, value);
 			break;
 	}
 }
@@ -53,11 +52,9 @@ static int spclaser_load_rom() {
 	return 0;
 }
 int spclaser_init() {
-	taito8080.cpu.read_io = spclaser_read_io;
-	taito8080.cpu.write_io = spclaser_write_io;
-	taito8080.mm.regions = spclaser_regions;
-	taito8080.mm.region_count = 2;
-
-	taito8080_set_life_def(3, 6);
+	emu.cpu.read_io = spclaser_read_io;
+	emu.cpu.write_io = spclaser_write_io;
+	emu.mm.regions = spclaser_regions;
+	emu.mm.region_count = 2;
 	return spclaser_load_rom();
 }

@@ -5,7 +5,6 @@
 
 #include "window_sdl2.h"
 #include "taito8080.h"
-#include "emulator.h"
 
 static void game_input(uint8_t v);
 static void sys_input();
@@ -21,7 +20,6 @@ void input_process_event() {
 		break;
 	}
 }
-
 
 static void game_input(uint8_t v) {
 	switch (sdl.e.key.keysym.sym) {
@@ -76,7 +74,6 @@ static void game_input(uint8_t v) {
 
 	}
 }
-
 static void sys_input() {
 	switch (sdl.e.key.keysym.sym) {
 

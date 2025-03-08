@@ -13,7 +13,6 @@
 typedef struct {
 	SDL_Window* game_window;
 	SDL_Renderer* game_renderer;
-	SDL_Surface* icon_surface;
 	SDL_Event e;
 } SDL_STATE;
 

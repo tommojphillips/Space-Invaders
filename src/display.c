@@ -46,14 +46,14 @@ void display_process_event() {
 	}
 }
 void display_draw_buffer() {
-	if (taito8080.mm.video == NULL) {
+	if (emu.mm.video == NULL) {
 		return;
 	}
 
 	int i = 0;
 	for (int x = 0; x < DISPLAY_W; ++x) {
 		for (int y = 0; y < DISPLAY_H; y += 8) {
-			uint8_t byte = taito8080.mm.video[i++];
+			uint8_t byte = emu.mm.video[i++];
 			for (int n = 0; n < 8; ++n) {
 
 				window_state->px.x = X_CENTER + (x * DISPLAY_PX_SIZE);

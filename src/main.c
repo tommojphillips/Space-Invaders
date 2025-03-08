@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "window_sdl2.h"
-#include "ui.h"
 #include "i8080.h"
 #include "taito8080.h"
 
@@ -18,17 +17,19 @@ int args(int argc, char** argv) {
 
 			if (strncmp("-l", arg, 2) == 0) {				
 				for (int k = 0; k < emu.romset_count; ++k) {
-					fprintf(stdout, "%s\n", taito8080_romsets[k].filename);
+					fprintf(stdout, "%s\n", romsets[k].id);
 				}
 				return 1;
 			}
 
 			if (strncmp("-f", arg, 2) == 0) {
-				arg += 2;
+				window_state->last_window_state = SDL_WINDOW_FULLSCREEN_DESKTOP;
+				break;
 			}
+
 			int found = 0;
 			for (int k = 0; k < emu.romset_count; ++k) {
-				if (strcmp(taito8080_romsets[k].filename, arg) == 0) {
+				if (strcmp(romsets[k].id, arg) == 0) {
 					found = 1;
 					emu.romset_index = k;
 				}
@@ -55,28 +56,21 @@ static void start_frame() {
 int main(int argc, char** argv) {
 
 	taito8080_init();
+	sdl_init();
 
 	if (args(argc, argv)) {
-		exit(0);
-	}
-
-	sdl_init();
-	sdl_create_window();
-#ifndef NO_UI
-	imgui_init();
-	imgui_create_renderer();
-#endif
-
-	if (taito8080_load_romset(emu.romset_index) != 0) {
 		return 1;
 	}
+	
+	if (taito8080_load_romset(emu.romset_index)) {
+		return 1;
+	}
+
+	sdl_create_window();
 
 	while (window_state->window_open) {
 		start_frame();
 		sdl_update();
-#ifndef NO_UI
-		imgui_update();
-#endif
 		taito8080_update();
 
 		if (16.666f < render_elapsed_time) {
@@ -87,10 +81,6 @@ int main(int argc, char** argv) {
 	}
 
 	taito8080_destroy();
-#ifndef NO_UI
-	imgui_destroy();
-#endif
 	sdl_destroy();
-
 	return 0;
 }
