@@ -8,6 +8,7 @@ A Windows binary is available for download on the releases page. See: [Releases]
  - [Input](#input)
  - [Usage](#usage)
  - [Building](#building)
+ - [Screenshots](#screenshots)
 
 ## Input
 
@@ -38,6 +39,12 @@ Launch romset:
 Space-Invaders.exe <romset>
 ```
 
+List all supported romsets:
+
+```
+Space-Invaders.exe -l
+```
+
 | Romset name               | MAME name   |
 | ------------------------- | ----------- |
 | Space Invaders            | `invaders`  |
@@ -51,34 +58,29 @@ Space-Invaders.exe <romset>
 | Galaxy Wars               | `galxwars`  |
 | Galactic                  | `galactic`  |
 
-
-Get a list of all supported romsets:
-
-```
-Space-Invaders.exe -l
-```
-
 ---
 
 ## Building
 
 The project is built in Visual Studio 2022
 
-#### Dependencies
- - SDL2 v2.30.10 - https://github.com/libsdl-org/SDL/releases/tag/release-2.30.10
+| Dependencies   |                                                                |
+| -------------- | -------------------------------------------------------------- |
+ | I8080         | https://github.com/tommojphillips/i8080                        |
+ | SDL2 v2.30.10 | https://github.com/libsdl-org/SDL/releases/tag/release-2.30.10 |
 
 ---
 
-  1. Clone the repo  
+1. Clone the repo and submodules
   
   ```
   git clone --recurse-submodules https://github.com/tommojphillips/Space-Invaders.git
   ```
     
  2. Download SDL2 VC package [`SDL2-devel-X.X.X-VC.zip`](https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-VC.zip) (direct download link)
-     - Extract and copy the `include` and `lib` folders into `Space-Invaders/lib/SDL2` you will have to create the `SDL2` directory
+     - Extract and copy the `include` and `lib` folders into `Space-Invaders/lib/SDL2` you will have to create the `SDL2` directory.
 
- 3. Open `vc\Space-Invaders.sln` in visual studio and build and run 
+ 3. Open `vc\Space-Invaders.sln`, build and run.
 
 ## Screenshots
 
