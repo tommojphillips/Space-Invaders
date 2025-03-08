@@ -1,7 +1,6 @@
 # Intel 8080 Space Invaders Emulator
 
-An Emulator for The Original 1978 Space Invaders Arcade Machine.
-Written in C using SDL2 for the renderering.
+An Emulator for The Original 1978 Space Invaders Arcade Machine. Written in C using SDL2 for the renderering.
 
  - [Input](#input)
  - [Usage](#usage)
@@ -29,7 +28,7 @@ Both player 1 and player 2 controls are mapped to the same keys.
 
 ## Usage
 
- This project uses the same names for the roms as the MAME project. Roms are loaded from a directory named after their MAME name.
+ This project uses the same names for the roms as the MAME project. Roms are loaded from a directory named after their `MAME` name.
 
 Launch romset:
 
@@ -37,24 +36,23 @@ Launch romset:
 Space-Invaders.exe <romset>
 ```
 
-List all supported romsets:
+| romset                       | MAME        |
+| -------------------------    | ----------- |
+| Space Invaders               | `invaders`  |
+| Lunar Rescue                 | `lrescue`   |
+| Balloon Bomber               | `ballbomb`  |
+| Space Invaders Part II       | `invadpt2`  |
+| Space Laser                  | `spclaser`  |
+| Space Chaser (set 1)         | `schaser`   |
+| Indian Battle                | `indianbt`  |
+| Ozma Wars (set 1)            | `ozmawars`  |
+| Galaxy Wars (set 1)          | `galxwars`  |
+| Galactic  - Batalha Espacial | `galactic`  |
 
-```
-Space-Invaders.exe -l
-```
-
-| Romset name               | MAME name   |
-| ------------------------- | ----------- |
-| Space Invaders            | `invaders`  |
-| Lunar Rescue              | `lrescue`   |
-| Balloon Bomber            | `ballbomb`  |
-| Space Invaders pt2        | `invadpt2`  | 
-| Space Laser               | `spclaser`  |
-| Space Chaser              | `schaser`   |
-| Indian Battle             | `indianbt`  |
-| Ozma Wars                 | `ozmawars`  |
-| Galaxy Wars               | `galxwars`  |
-| Galactic                  | `galactic`  |
+| Options | Desc                        |
+| ------- | --------------------------- |
+| `-l`    | List all supported romsets  |
+| `-f`    | Launch romset in fullscreen |
 
 ---
 
