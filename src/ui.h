@@ -2,6 +2,7 @@
 * GitHub: https:\\github.com\tommojphillips
 */
 
+#ifndef NO_UI
 #ifndef IMGUI_WINDOW_UI_H
 #define IMGUI_WINDOW_UI_H
 
@@ -38,10 +39,9 @@ void imgui_process_event();
 // imgui toggle menu ui
 void imgui_toggle_menu();
 
-void imgui_refresh_ui_state();
-
 #ifdef __cplusplus
 };
 #endif
 
+#endif
 #endif

@@ -33,6 +33,12 @@ uint8_t galxwars_read_io(uint8_t port) {
 		case PORT_INP0:
 			return galxwars_inp0();
 
+		case PORT_INP1:
+			return taito8080_default_inp1();
+
+		case PORT_INP2:
+			return taito8080_default_inp2();
+
 		default:
 			printf("Reading from undefined port: %02X\n", port);
 			break;
@@ -41,6 +47,18 @@ uint8_t galxwars_read_io(uint8_t port) {
 }
 void galxwars_write_io(uint8_t port, uint8_t value) {
 	switch (port) {
+		
+		case PORT_SOUND1: /* Bank1 Sound */
+			taito8080.io_output.sound1 = value;
+			break;
+
+		case PORT_SOUND2: /* Bank2 Sound */
+			taito8080.io_output.sound2 = value;
+			break;
+
+		case PORT_WATCHDOG: /*WATCHDOG*/
+			taito8080.io_output.watchdog = value;
+			break;
 
 		default:
 			printf("Writing to undefined port: %02X = %02X\n", port, value);

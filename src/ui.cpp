@@ -2,6 +2,8 @@
 * GitHub: https:\\github.com\tommojphillips
 */
 
+#ifndef NO_UI
+
 #include <stdio.h>
 
 #include "imgui.h"
@@ -457,3 +459,4 @@ static void dip_switch16(uint16_t* v, uint8_t id_offset, const char* dip_name) {
 		if (i < 15) SameLine();
 	}
 }
+#endif

@@ -1,4 +1,6 @@
 
+#include <stdio.h>
+
 #include "SDL.h"
 
 #include "window_sdl2.h"
@@ -6,11 +8,13 @@
 #include "emulator.h"
 
 static void game_input(uint8_t v);
+static void sys_input();
 
 void input_process_event() {
 	switch (sdl.e.type) {
 	case SDL_KEYDOWN:
 		game_input(1);
+		sys_input();
 		break;
 	case SDL_KEYUP:
 		game_input(0);
@@ -18,7 +22,6 @@ void input_process_event() {
 	}
 }
 
-#include "stdio.h"
 
 static void game_input(uint8_t v) {
 	switch (sdl.e.key.keysym.sym) {
@@ -57,7 +60,6 @@ static void game_input(uint8_t v) {
 			break;
 
 		case SDLK_3:
-		case SDLK_c:
 			emu.controls.insert_coin = v;
 			break;
 
@@ -65,9 +67,6 @@ static void game_input(uint8_t v) {
 			emu.controls.tilt_switch = v;
 			break;
 
-		case SDLK_F1:
-			if (v) emu.controls.coin_info ^= 1;
-			break;
 		case SDLK_F2:
 			emu.controls.name_reset = v;
 			break;
@@ -75,26 +74,29 @@ static void game_input(uint8_t v) {
 			emu.controls.preset_mode = v;
 			break;
 
-		case SDLK_r:
-			if (v && sdl.e.key.keysym.mod & KMOD_LCTRL) taito8080_reset();
+	}
+}
+
+static void sys_input() {
+	switch (sdl.e.key.keysym.sym) {
+
+		case SDLK_F1:
+			emu.controls.coin_info ^= 1;
+			break;
+		case SDLK_F4:
+			taito8080_reset();
 			break;
 
 		case SDLK_F5:
-			if (v) taito8080_save_state();
+			taito8080_save_state();
 			break;
 		case SDLK_F9:
-			if (v) taito8080_load_state();
+			taito8080_load_state();
 			break;
 
 		case SDLK_p:
-			if (v) emu.single_step = emu.single_step ? SINGLE_STEP_NONE : SINGLE_STEP_AWAIT;
+			emu.single_step = emu.single_step ? SINGLE_STEP_NONE : SINGLE_STEP_AWAIT;
 			break;
 
-		case SDLK_i: /* spawn space ship */
-			*(uint16_t*)(taito8080.mm.memory + 0x2091) = 0;
-			break;
-		case SDLK_u: /* kill space ship */
-			taito8080.mm.memory[0x2085] = 1;
-			break;
 	}
 }

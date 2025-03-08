@@ -9,9 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="imgui">
-      <UniqueIdentifier>{22a4b414-8be4-45fe-a549-ac1597ff6607}</UniqueIdentifier>
-    </Filter>
     <Filter Include="romsets">
       <UniqueIdentifier>{2a78aba0-beae-4326-916f-d339f4e1d2fe}</UniqueIdentifier>
     </Filter>
@@ -29,26 +26,8 @@
     <ClCompile Include="..\src\window_sdl2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib\imgui\imgui.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\imgui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\imgui\imgui_tables.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ui.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\imgui\backends\imgui_impl_sdl2.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\imgui\backends\imgui_impl_sdlrenderer2.cpp">
-      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\src\display.c">
       <Filter>Source Files</Filter>

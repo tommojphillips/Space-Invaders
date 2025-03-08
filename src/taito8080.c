@@ -31,28 +31,17 @@
 #define RAM_SIZE   0x0400
 #define VIDEO_SIZE 0x1C00
 
-#define ROMSET_INVADERS     0
-#define ROMSET_INVADERS_PT2 1
-#define ROMSET_LRESCUE      2
-#define ROMSET_BALLBOMBER   3
-#define ROMSET_SPACE_LASER  4
-#define ROMSET_GALX_WARS    5
-#define ROMSET_OZMA_WARS    6
-#define ROMSET_SCHASER      7
-#define ROMSET_GALACTIC     8
-#define ROMSET_INDIANBT     9
-
 const ROMSET taito8080_romsets[] = {
-	{ ROMSET_INVADERS,      "space invaders",       invaders_init		},
-	{ ROMSET_INVADERS_PT2,  "space invaders pt2",   invaderspt2_init	},
-	{ ROMSET_LRESCUE,       "lunar rescue",         lrescue_init		},
-	{ ROMSET_BALLBOMBER,    "ballon bomber",        ballbomb_init		},
-	{ ROMSET_SPACE_LASER,   "space laser",          spclaser_init		},
-	{ ROMSET_GALX_WARS,     "galaxy wars",          galxwars_init		},
-	{ ROMSET_OZMA_WARS,     "ozma wars",            solfight_init		},
-	{ ROMSET_SCHASER,       "space chaser",         schaser_init        },
-	{ ROMSET_GALACTIC,      "galactic",             galactic_init       },
-	{ ROMSET_INDIANBT,      "indianbt",             indianbt_init       },
+	{ "space invaders",     "invaders", invaders_init    },
+	{ "space invaders pt2", "invadpt2", invaderspt2_init },
+	{ "lunar rescue",       "lrescue",  lrescue_init	 },
+	{ "ballon bomber",      "ballbomb", ballbomb_init    },
+	{ "space laser",        "spclaser", spclaser_init    },
+	{ "galaxy wars",        "galxwars", galxwars_init    },
+	{ "ozma wars",          "solfight", solfight_init    },
+	{ "space chaser",       "schaser",  schaser_init     },
+	{ "galactic",           "galactic", galactic_init    },
+	{ "indianbt",           "indianbt", indianbt_init    },
 };
 
 TAITO8080 taito8080 = { 0 };
@@ -143,13 +132,10 @@ int taito8080_init() {
 
 	emu.single_step = SINGLE_STEP_NONE;
 	emu.single_step_increment = 1;
+	emu.romset_index = 0;
+	emu.romset_count = 10;
 
 	taito8080_reset();
-
-	emu.romset_count = 10;
-	if (taito8080_load_romset(ROMSET_INVADERS) != 0) {
-		return 1;
-	}
 
 	return 0;
 }

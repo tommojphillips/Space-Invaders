@@ -16,8 +16,10 @@ WINDOW_STATE* window_state = NULL;
 
 static void set_default_settings();
 
+#ifndef NO_UI
 void imgui_toggle_menu();
 void imgui_process_event(); 
+#endif
 
 void display_draw_buffer();
 void display_process_event();
@@ -99,8 +101,10 @@ void sdl_destroy() {
 }
 void sdl_update() {
 	while (SDL_PollEvent(&sdl.e)) {
-		sdl_process_event();	
+		sdl_process_event();
+#ifndef NO_UI
 		imgui_process_event();
+#endif
 		display_process_event();
 		input_process_event();
 	}
@@ -116,9 +120,11 @@ void sdl_process_event() {
 	switch (sdl.e.type) {
 		case SDL_KEYDOWN: {
 			switch (sdl.e.key.keysym.sym) {
+#ifndef NO_UI
 				case SDLK_ESCAPE:
 					imgui_toggle_menu();
 					break;
+#endif
 
 				case SDLK_F11: {
 					if (window_state->last_window_state != SDL_WINDOW_FULLSCREEN_DESKTOP) {

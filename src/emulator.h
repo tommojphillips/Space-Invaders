@@ -14,11 +14,10 @@ enum {
 };
 
 typedef struct {
-	int id;
 	const char* name;
+	const char* filename;
 	int(*init_romset)();
 } ROMSET;
-
 
 #define MREGION_FLAG_NONE            0
 #define MREGION_FLAG_WRITE_PROTECTED 2
