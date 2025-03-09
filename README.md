@@ -30,11 +30,15 @@ Both player 1 and player 2 controls are mapped to the same keys.
 
  This project uses the same names for the roms as the MAME project. Roms are loaded from a directory named after their `MAME` name.
 
-Launch romset:
-
+Syntax:
 ```
 Space-Invaders.exe <romset>
 ```
+
+| Options | Desc                        |
+| ------- | --------------------------- |
+| `-l`    | List all supported romsets  |
+| `-f`    | Launch romset in fullscreen |
 
 | romset                       | MAME        |
 | -------------------------    | ----------- |
@@ -48,13 +52,6 @@ Space-Invaders.exe <romset>
 | Ozma Wars (set 1)            | `ozmawars`  |
 | Galaxy Wars (set 1)          | `galxwars`  |
 | Galactic  - Batalha Espacial | `galactic`  |
-
-| Options | Desc                        |
-| ------- | --------------------------- |
-| `-l`    | List all supported romsets  |
-| `-f`    | Launch romset in fullscreen |
-
----
 
 ## Building
 
